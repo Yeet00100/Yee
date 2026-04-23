@@ -1,557 +1,151 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ระบบเรียกคิวลูกค้ารับรถ</title>
-  <meta name="theme-color" content="#0f172a" />
-  <style>
-    :root{
-      --bg:#f4f6f8; --panel:#fff; --line:#dbe2ea; --muted:#5b6b7f; --text:#16202a;
-      --primary:#1d4f91; --primary-hover:#163d6f; --soft:#eef3f8; --danger:#a82b23; --ok:#166534;
-      --shadow:0 10px 28px rgba(15,23,42,.05); --radius:14px;
-    }
-    *{box-sizing:border-box} html,body{margin:0;padding:0}
-    body{font-family:"Noto Sans Thai","Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text)}
-    button,input,select,textarea{font:inherit}
-    .app{max-width:1120px;margin:0 auto;padding:16px}
-    .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-    .title h1{margin:0;font-size:clamp(1.2rem,1rem + .9vw,1.8rem)}
-    .title p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
-    .head-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--line);background:#fff;border-radius:999px;color:var(--muted);font-size:.88rem}
-    .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:14px}
-    @media (max-width:980px){.layout{grid-template-columns:1fr}}
-    .stack{display:grid;gap:14px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
-    .card h2{margin:0 0 10px;font-size:1rem}
-    .sub{color:var(--muted);font-size:.88rem}
-    .current{background:linear-gradient(180deg,#14385d 0%,#102942 100%);color:#fff;border-color:#193d66}
-    .current .sub,.current .label{color:rgba(255,255,255,.74)}
-    .queue-big{font-size:clamp(3.2rem,6vw,5rem);font-weight:800;line-height:1;margin:10px 0 12px;letter-spacing:-.03em}
-    .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    @media (max-width:560px){.meta{grid-template-columns:1fr}}
-    .meta-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 11px}
-    .label{font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
-    .value{font-weight:700;word-break:break-word}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:640px){.grid{grid-template-columns:1fr}}
-    .full{grid-column:1 / -1}
-    label.field{display:grid;gap:5px;color:var(--muted);font-size:.88rem}
-    input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cfd7e1;border-radius:11px;background:#fff;color:var(--text);outline:none}
-    input:focus,select:focus,textarea:focus{border-color:#8ba8c7;box-shadow:0 0 0 3px rgba(29,79,145,.08)}
-    input[readonly]{background:#f8fafc;color:#475569}
-    textarea{min-height:74px;resize:vertical}
-    .btns,.btns3{display:grid;gap:8px}
-    .btns{grid-template-columns:1fr 1fr}
-    .btns3{grid-template-columns:repeat(3,1fr)}
-    @media (max-width:640px){.btns,.btns3{grid-template-columns:1fr}}
-    button{width:100%;padding:10px 12px;border-radius:11px;border:1px solid transparent;font-weight:700;cursor:pointer}
-    .primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary-hover)}
-    .soft{background:var(--soft);border-color:#dce5ef;color:#21405c}.soft:hover{background:#e5edf5}
-    .danger{background:#fff5f5;border-color:#f2d0d0;color:var(--danger)}
-    .ghost{background:#fff;border-color:var(--line);color:#334155}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.toolbar>*{flex:1 1 180px}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
-    table{width:100%;border-collapse:collapse;min-width:900px}
-    th,td{padding:10px 11px;border-bottom:1px solid #e7edf3;text-align:left;vertical-align:top;font-size:.92rem}
-    th{background:#f8fafc;color:#475569}
-    tr:hover td{background:#fbfdff}
-    .status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.76rem;font-weight:700;border:1px solid transparent}
-    .waiting{background:#eef6ff;color:#174ea6;border-color:#d6e6ff}.called{background:#fff7ed;color:#9a4b00;border-color:#f4dfc2}.done{background:#effcf3;color:#166534;border-color:#d6f2de}
-    .mini-actions{display:flex;gap:6px;flex-wrap:wrap}.mini-actions button{width:auto;padding:7px 10px;font-size:.82rem}
-    .note{margin-top:8px;padding:10px 11px;border:1px dashed #d5dee8;background:#f8fafc;border-radius:11px;color:var(--muted);font-size:.87rem}
-    .ok{color:var(--ok)} .warn{color:#9a4b00} .err{color:var(--danger)}
-
-    body.tv{background:#07111f;color:#eff6ff;overflow:hidden}
-    .tv{min-height:100vh;position:relative}
-    .slide-bg{position:absolute;inset:0;background:#07111f}
-    .slide-bg iframe{width:100%;height:100%;border:0;opacity:.98}
-    .slide-fallback{position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.55);font-size:1.1rem}
-    .tv-overlay{position:absolute;left:26px;right:26px;bottom:22px;display:grid;gap:12px}
-    .tv-topline{display:flex;justify-content:space-between;align-items:center;gap:16px;color:#e2e8f0}
-    .tv-brand{font-size:1.15rem;font-weight:700;backdrop-filter:blur(10px);background:rgba(7,17,31,.38);padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12)}
-    .tv-clock{font-size:1.05rem;backdrop-filter:blur(10px);background:rgba(7,17,31,.38);padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12)}
-    .tv-call{backdrop-filter:blur(18px);background:linear-gradient(180deg,rgba(13,30,53,.72),rgba(7,17,31,.82));border:1px solid rgba(255,255,255,.13);border-radius:26px;padding:18px 20px;display:grid;grid-template-columns:1.2fr 2fr auto;gap:16px;align-items:center;box-shadow:0 24px 50px rgba(0,0,0,.28)}
-    .tv-qno{font-size:clamp(4rem,11vw,8rem);font-weight:900;letter-spacing:-.05em;line-height:.9}
-    .tv-info{display:grid;gap:8px}
-    .tv-row{display:flex;gap:10px;align-items:flex-start;font-size:clamp(1rem,1vw + .6rem,1.5rem)}
-    .tv-row .k{min-width:92px;color:rgba(255,255,255,.7)}
-    .tv-counter{font-size:clamp(1.5rem,1vw + 1rem,2.3rem);font-weight:800;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);padding:14px 18px;border-radius:18px;white-space:nowrap}
-    .tv-recent{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .tv-chip{backdrop-filter:blur(10px);background:rgba(7,17,31,.4);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 14px}
-    .tv-chip .q{font-size:1.55rem;font-weight:800;line-height:1;margin-bottom:6px}
-    .tv-chip .m{color:rgba(255,255,255,.75);font-size:.94rem}
-    @media (max-width:1080px){.tv-call{grid-template-columns:1fr;}.tv-recent{grid-template-columns:repeat(2,1fr)} body.tv{overflow:auto}.tv-overlay{position:relative;left:auto;right:auto;bottom:auto;padding:24px}}
-  </style>
+<meta charset="UTF-8">
+<title>ระบบเรียกคิวรับรถ</title>
+<style>
+body {
+  font-family: sans-serif;
+  background: #f5f6f8;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+button {
+  background: #0d6efd;
+  color: white;
+  font-weight: bold;
+}
+.current {
+  text-align: center;
+  font-size: 28px;
+}
+</style>
 </head>
+
 <body>
-  <div id="app"></div>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+<div class="container">
 
-    const isTvMode = new URLSearchParams(location.search).get('screen') === 'tv';
-    const LOCAL_KEY = 'queuePickupFirebaseLocalV1';
-    const CFG_KEY = 'queuePickupFirebaseConfigV1';
-    const defaultConfigState = {
-      roomId: 'showroom-1',
-      firebaseConfigText: '{\n  "apiKey": "",\n  "authDomain": "",\n  "projectId": "",\n  "storageBucket": "",\n  "messagingSenderId": "",\n  "appId": ""\n}',
-      connected: false,
-      tvSlidesUrl: ''
-    };
-    const defaultData = {
-      queues: [], currentQueueId: null, editingId: null,
-      voiceGender: 'female', voiceURI: '', repeatCount: 2, repeatGap: 2600, speechRate: 0.92,
-      ttsMode: 'auto', onlineTtsTemplate: 'https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q={text}',
-      companyName: 'ศูนย์บริการลูกค้ารับรถ', tvSlidesUrl: '', announceProvince: true,
-      lastCalledAt: 0, updatedAt: Date.now()
-    };
+  <div class="card">
+    <h3>เพิ่มคิว</h3>
+    <input id="plate" placeholder="ทะเบียน เช่น กข1234">
+    <input id="province" placeholder="จังหวัด">
+    <input id="counter" placeholder="จุดรับรถ">
+    <button onclick="addQueue()">เพิ่มคิว</button>
+  </div>
 
-    const THAI_LETTERS = {'ก':'กอ ไก่','ข':'ขอ ไข่','ฃ':'ฃอ ขวด','ค':'คอ ควาย','ฅ':'ฅอ คน','ฆ':'ฆอ ระฆัง','ง':'งอ งู','จ':'จอ จาน','ฉ':'ฉอ ฉิ่ง','ช':'ชอ ช้าง','ซ':'ซอ โซ่','ฌ':'ฌอ เฌอ','ญ':'ญอ หญิง','ฎ':'ฎอ ชฎา','ฏ':'ฏอ ปฏัก','ฐ':'ฐอ ฐาน','ฑ':'ฑอ มณโฑ','ฒ':'ฒอ ผู้เฒ่า','ณ':'ณอ เณร','ด':'ดอ เด็ก','ต':'ตอ เต่า','ถ':'ถอ ถุง','ท':'ทอ ทหาร','ธ':'ธอ ธง','น':'นอ หนู','บ':'บอ ใบไม้','ป':'ปอ ปลา','ผ':'ผอ ผึ้ง','ฝ':'ฝอ ฝา','พ':'พอ พาน','ฟ':'ฟอ ฟัน','ภ':'ภอ สำเภา','ม':'มอ ม้า','ย':'ยอ ยักษ์','ร':'รอ เรือ','ล':'ลอ ลิง','ว':'วอ แหวน','ศ':'ศอ ศาลา','ษ':'ษอ ฤๅษี','ส':'สอ เสือ','ห':'หอ หีบ','ฬ':'ฬอ จุฬา','อ':'ออ อ่าง','ฮ':'ฮอ นกฮูก'};
-    const THAI_DIGITS = {'0':'ศูนย์','1':'หนึ่ง','2':'สอง','3':'สาม','4':'สี่','5':'ห้า','6':'หก','7':'เจ็ด','8':'แปด','9':'เก้า'};
-    const EN_LETTERS = {'A':'เอ','B':'บี','C':'ซี','D':'ดี','E':'อี','F':'เอฟ','G':'จี','H':'เอช','I':'ไอ','J':'เจ','K':'เค','L':'แอล','M':'เอ็ม','N':'เอ็น','O':'โอ','P':'พี','Q':'คิว','R':'อาร์','S':'เอส','T':'ที','U':'ยู','V':'วี','W':'ดับเบิลยู','X':'เอ็กซ์','Y':'วาย','Z':'แซด'};
+  <div class="card current">
+    <div>กำลังเรียก</div>
+    <div id="currentQueue">-</div>
+  </div>
 
-    let configState = loadJSON(CFG_KEY, defaultConfigState);
-    let state = loadJSON(LOCAL_KEY, defaultData);
-    let voices = [];
-    let db = null;
-    let unsub = null;
-    let connectionMessage = '';
+  <div class="card">
+    <button onclick="callNext()">เรียกคิวถัดไป</button>
+  </div>
 
-    function loadJSON(key, fallback) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? { ...fallback, ...JSON.parse(raw) } : { ...fallback };
-      } catch { return { ...fallback }; }
-    }
-    function saveLocal() {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
-      localStorage.setItem(CFG_KEY, JSON.stringify(configState));
-    }
-    function normalizeSpaces(text=''){ return text.replace(/\s+/g,' ').trim(); }
-    function escapeHtml(str=''){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-    function currentQueue(){ return state.queues.find(q => q.id === state.currentQueueId) || null; }
-    function nextQueueNo(){ const nums = state.queues.map(q => Number(q.queueNumber)).filter(n => !Number.isNaN(n)); return String((nums.length ? Math.max(...nums) : 0) + 1).padStart(2,'0'); }
-    function fmtTime(ts){ return ts ? new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit'}).format(new Date(ts)) : '-'; }
-    function statusLabel(s){ return s==='called' ? 'กำลังเรียก' : s==='done' ? 'รับรถแล้ว' : 'รอเรียก'; }
+</div>
 
-    function plateTokens(plate){
-      return normalizeSpaces(plate).toUpperCase().split('').map(ch => {
-        if (THAI_LETTERS[ch]) return THAI_LETTERS[ch];
-        if (THAI_DIGITS[ch]) return THAI_DIGITS[ch];
-        if (EN_LETTERS[ch]) return EN_LETTERS[ch];
-        if (ch === '-') return 'ขีด';
-        if (ch === ' ') return 'พัก';
-        return ch;
-      });
-    }
-    function plateToSpeech(plate, mode='browser'){
-      const sep = mode === 'online' ? ' , ' : ' / ';
-      return plateTokens(plate).join(sep);
-    }
-    function queueToSpeech(q){ return String(q||'').trim(); }
-    function buildAnnouncement(item, mode='browser'){
-      const gap = mode === 'online' ? ' , ' : ' ';
-      const parts = [`ขอเชิญลูกค้ารับรถ คิว ${queueToSpeech(item.queueNumber)}`];
-      if (normalizeSpaces(item.plateNumber)) parts.push(`ทะเบียน ${plateToSpeech(item.plateNumber, mode)}`);
-      if (state.announceProvince && normalizeSpaces(item.province)) parts.push(`จังหวัด ${normalizeSpaces(item.province)}`);
-      if (normalizeSpaces(item.counter)) parts.push(`ที่จุดรับรถ ${normalizeSpaces(item.counter)}`);
-      return parts.join(gap).replace(/\s+,/g, ',').trim();
-    }
-    function getVoices(){
-      voices = 'speechSynthesis' in window ? window.speechSynthesis.getVoices() : [];
-      render();
-    }
-    function selectedVoice(){
-      const byURI = voices.find(v => v.voiceURI === state.voiceURI);
-      if (byURI) return byURI;
-      const thai = voices.filter(v => /th/i.test(v.lang) || /thai|siri/i.test(v.name));
-      const pool = thai.length ? thai : voices;
-      const female = /female|woman|สาว|หญิง|siri/i;
-      const male = /male|man|ชาย/i;
-      if (state.voiceGender === 'male') return pool.find(v => male.test(v.name)) || pool[0] || null;
-      return pool.find(v => female.test(v.name)) || pool[0] || null;
-    }
-    function buildTtsUrl(text){
-      const template = normalizeSpaces(state.onlineTtsTemplate || '');
-      if (!template || !template.includes('{text}')) return '';
-      return template
-        .replaceAll('{text}', encodeURIComponent(text))
-        .replaceAll('{voiceGender}', encodeURIComponent(state.voiceGender || 'female'))
-        .replaceAll('{lang}', encodeURIComponent('th-TH'));
-    }
-    function playAudioUrl(url){
-      return new Promise((resolve, reject) => {
-        const audio = new Audio(url);
-        audio.preload = 'auto';
-        audio.onended = () => resolve(true);
-        audio.onerror = () => reject(new Error('เล่นเสียงออนไลน์ไม่สำเร็จ'));
-        audio.play().catch(reject);
-      });
-    }
-    function speakBrowser(text){
-      if (!('speechSynthesis' in window)) return false;
-      window.speechSynthesis.cancel();
-      const voice = selectedVoice();
-      const repeats = Math.max(1, Number(state.repeatCount) || 1);
-      const gap = Math.max(1200, Number(state.repeatGap) || 2600);
-      const rate = Math.max(.7, Math.min(1.2, Number(state.speechRate) || .92));
-      for(let i=0;i<repeats;i++){
-        setTimeout(() => {
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = voice?.lang || 'th-TH';
-          u.rate = rate;
-          u.pitch = state.voiceGender === 'male' ? .92 : 1.02;
-          if (voice) u.voice = voice;
-          window.speechSynthesis.speak(u);
-        }, i * gap);
-      }
-      return true;
-    }
-    async function speak(item){
-      if (isTvMode) return;
-      const browserText = buildAnnouncement(item, 'browser');
-      const onlineText = buildAnnouncement(item, 'online');
-      const mode = state.ttsMode || 'auto';
-      if (mode !== 'browser') {
-        try {
-          const url = buildTtsUrl(onlineText);
-          if (url) {
-            const repeats = Math.max(1, Number(state.repeatCount) || 1);
-            const gap = Math.max(1200, Number(state.repeatGap) || 2600);
-            for (let i = 0; i < repeats; i++) {
-              await playAudioUrl(url);
-              if (i < repeats - 1) await new Promise(r => setTimeout(r, gap));
-            }
-            return;
-          }
-        } catch (err) {
-          console.warn(err);
-        }
-      }
-      speakBrowser(browserText);
-    }
+<script>
 
-    function applySnapshot(remote){
-      if (!remote) return;
-      const next = { ...defaultData, ...remote };
-      state = next;
-      saveLocal();
-      render();
-    }
-    async function pushState(extra={}){
-      saveLocal();
-      if (!db || !configState.roomId) return;
-      const payload = JSON.parse(JSON.stringify({
-        ...state,
-        ...extra,
-        editingId: null,
-        updatedAt: Date.now()
-      }));
-      await setDoc(doc(db, 'queueRooms', configState.roomId), { ...payload, serverUpdatedAt: serverTimestamp() }, { merge: true });
-    }
-    function parseFirebaseConfig(){
-      let raw = (configState.firebaseConfigText || '{}').trim();
-      raw = raw.replace(/^const\s+firebaseConfig\s*=\s*/,'').replace(/;\s*$/,'').trim();
-      raw = raw.replace(/([{,]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":');
-      raw = raw.replace(/'/g, '"');
-      const cfg = JSON.parse(raw || '{}');
-      const needed = ['apiKey','authDomain','projectId','appId'];
-      for (const k of needed) if (!cfg[k]) throw new Error(`ยังไม่ได้ใส่ ${k}`);
-      return cfg;
-    }
-    async function connectFirebase(){
-      if (unsub) { unsub(); unsub = null; }
-      connectionMessage = '';
-      try {
-        const app = initializeApp(parseFirebaseConfig(), 'queuePickupApp-' + Math.random().toString(36).slice(2));
-        db = getFirestore(app);
-        const ref = doc(db, 'queueRooms', configState.roomId);
-        unsub = onSnapshot(ref, snap => {
-          if (snap.exists()) applySnapshot(snap.data());
-          configState.connected = true;
-          connectionMessage = 'เชื่อมต่อ Firebase แล้ว';
-          saveLocal();
-          render();
-        }, err => {
-          configState.connected = false;
-          connectionMessage = 'เชื่อมต่อไม่สำเร็จ: ' + err.message;
-          saveLocal();
-          render();
-        });
-        configState.connected = true;
-        connectionMessage = 'กำลังเชื่อมต่อ...';
-        saveLocal();
-        render();
-      } catch (err) {
-        configState.connected = false;
-        connectionMessage = 'ตั้งค่า Firebase ไม่ถูกต้อง: ' + err.message;
-        saveLocal();
-        render();
-      }
-    }
+let queue = [];
+let currentIndex = -1;
 
-    async function saveSettings(form){
-      configState.roomId = normalizeSpaces(form.roomId.value) || 'showroom-1';
-      configState.firebaseConfigText = form.firebaseConfigText.value.trim();
-      state.companyName = normalizeSpaces(form.companyName.value) || defaultData.companyName;
-      state.tvSlidesUrl = normalizeSpaces(form.tvSlidesUrl.value);
-      configState.tvSlidesUrl = state.tvSlidesUrl;
-      state.announceProvince = form.announceProvince.checked;
-      state.voiceGender = form.voiceGender.value;
-      state.voiceURI = form.voiceURI.value;
-      state.repeatCount = Number(form.repeatCount.value) || 2;
-      state.repeatGap = Number(form.repeatGap.value) || 2600;
-      state.speechRate = Number(form.speechRate.value) || .92;
-      state.ttsMode = form.ttsMode.value;
-      state.onlineTtsTemplate = normalizeSpaces(form.onlineTtsTemplate.value) || defaultData.onlineTtsTemplate;
-      saveLocal();
-      await connectFirebase();
-      try { await pushState(); } catch {}
-      render();
-    }
+// 🔊 แปลงทะเบียนแบบห้าง
+function formatPlateForSpeech(text) {
+  const thaiMap = {
+    'ก': 'กอ ไก่','ข': 'ขอ ไข่','ค': 'คอ ควาย','ง': 'งอ งู',
+    'จ': 'จอ จาน','ฉ': 'ฉอ ฉิ่ง','ช': 'ชอ ช้าง','ซ': 'ซอ โซ่',
+    'ด': 'ดอ เด็ก','ต': 'ตอ เต่า','ถ': 'ถอ ถุง','ท': 'ทอ ทหาร',
+    'น': 'นอ หนู','บ': 'บอ ใบไม้','ป': 'ปอ ปลา','ผ': 'ผอ ผึ้ง',
+    'ฝ': 'ฝอ ฝา','พ': 'พอ พาน','ฟ': 'ฟอ ฟัน','ม': 'มอ ม้า',
+    'ย': 'ยอ ยักษ์','ร': 'รอ เรือ','ล': 'ลอ ลิง','ว': 'วอ แหวน',
+    'ส': 'สอ เสือ','ห': 'หอ หีบ','อ': 'ออ อ่าง','ฮ': 'ฮอ นกฮูก'
+  };
 
-    async function submitQueue(form){
-      const payload = {
-        queueNumber: form.queueNumber.value,
-        customerName: normalizeSpaces(form.customerName.value),
-        plateNumber: normalizeSpaces(form.plateNumber.value),
-        province: normalizeSpaces(form.province.value),
-        counter: normalizeSpaces(form.counter.value),
-        notes: normalizeSpaces(form.notes.value)
-      };
-      if (state.editingId) {
-        state.queues = state.queues.map(q => q.id === state.editingId ? { ...q, ...payload, updatedAt: Date.now() } : q);
-        state.editingId = null;
-      } else {
-        state.queues.unshift({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()), ...payload, status:'waiting', createdAt:Date.now(), updatedAt:Date.now(), calledAt:0, doneAt:0 });
-      }
-      await pushState();
-      resetForm();
-      render();
-    }
-    function resetForm(){
-      state.editingId = null;
-      const f = document.getElementById('queue-form');
-      if (!f) return;
-      f.reset();
-      f.queueNumber.value = nextQueueNo();
-      render();
-    }
-    function editQueue(id){
-      const q = state.queues.find(x => x.id === id); if (!q) return;
-      state.editingId = id;
-      render();
-      const f = document.getElementById('queue-form');
-      f.queueNumber.value = q.queueNumber;
-      f.customerName.value = q.customerName || '';
-      f.plateNumber.value = q.plateNumber || '';
-      f.province.value = q.province || '';
-      f.counter.value = q.counter || '';
-      f.notes.value = q.notes || '';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    async function removeQueue(id){
-      state.queues = state.queues.filter(q => q.id !== id);
-      if (state.currentQueueId === id) state.currentQueueId = null;
-      if (state.editingId === id) state.editingId = null;
-      await pushState(); render(); resetForm();
-    }
-    async function callQueue(id){
-      state.currentQueueId = id;
-      state.lastCalledAt = Date.now();
-      state.queues = state.queues.map(q => q.id === id ? { ...q, status:'called', calledAt:Date.now(), updatedAt:Date.now() } : q.status === 'called' ? { ...q, status:'waiting', updatedAt:Date.now() } : q);
-      await pushState();
-      const item = currentQueue();
-      if (item) speak(item);
-      render();
-    }
-    async function callNext(){
-      const next = [...state.queues].filter(q => q.status !== 'done').sort((a,b) => Number(a.queueNumber) - Number(b.queueNumber))[0];
-      if (next) await callQueue(next.id);
-    }
-    async function recallCurrent(){ const item = currentQueue(); if (!item) return; speak(item); await pushState({ lastCalledAt: Date.now() }); render(); }
-    async function finishCurrent(){
-      const item = currentQueue(); if (!item) return;
-      state.queues = state.queues.map(q => q.id === item.id ? { ...q, status:'done', doneAt:Date.now(), updatedAt:Date.now() } : q);
-      state.currentQueueId = null;
-      await pushState(); render();
-    }
-    async function clearDone(){ state.queues = state.queues.filter(q => q.status !== 'done'); await pushState(); render(); }
-    async function resetAll(){ if (!confirm('ล้างข้อมูลคิวทั้งหมด?')) return; state = { ...defaultData, companyName: state.companyName, tvSlidesUrl: state.tvSlidesUrl, voiceGender: state.voiceGender, voiceURI: state.voiceURI, repeatCount: state.repeatCount, repeatGap: state.repeatGap, speechRate: state.speechRate, announceProvince: state.announceProvince }; await pushState(); render(); }
+  const numberMap = {
+    '0':'ศูนย์','1':'หนึ่ง','2':'สอง','3':'สาม','4':'สี่',
+    '5':'ห้า','6':'หก','7':'เจ็ด','8':'แปด','9':'เก้า'
+  };
 
-    function controlView(){
-      const cur = currentQueue();
-      const query = normalizeSpaces(document.getElementById('search-box')?.value || '').toLowerCase();
-      const rows = state.queues.filter(q => {
-        const bag = `${q.queueNumber} ${q.customerName} ${q.plateNumber} ${q.province} ${q.counter} ${q.notes}`.toLowerCase();
-        return !query || bag.includes(query);
-      }).sort((a,b) => Number(a.queueNumber) - Number(b.queueNumber));
-      const voiceOptions = voices.map(v => `<option value="${escapeHtml(v.voiceURI)}" ${v.voiceURI===state.voiceURI?'selected':''}>${escapeHtml(v.name)} (${escapeHtml(v.lang)})</option>`).join('');
+  return (text || '')
+    .replace(/[^ก-ฮ0-9]/g,'')
+    .split('')
+    .map(c => thaiMap[c] || numberMap[c] || '')
+    .join(' ');
+}
 
-      return `
-        <div class="app">
-          <div class="head">
-            <div class="title">
-              <h1>${escapeHtml(state.companyName || 'ระบบเรียกคิวลูกค้ารับรถ')}</h1>
-              <p>เวอร์ชันซิงก์ข้ามเครื่องด้วย Firebase พร้อมหน้า TV แยก</p>
-            </div>
-            <div class="head-actions">
-              <span class="badge">ห้อง: <strong>${escapeHtml(configState.roomId)}</strong></span>
-              <span class="badge ${configState.connected ? 'ok' : 'warn'}">${escapeHtml(connectionMessage || (configState.connected ? 'ออนไลน์' : 'ยังไม่เชื่อมต่อ'))}</span>
-              <button class="ghost" style="width:auto" onclick="window.open(location.pathname + '?screen=tv','_blank')">เปิดจอทีวี</button>
-            </div>
-          </div>
-          <div class="layout">
-            <div class="stack">
-              <section class="card current">
-                <div class="sub">คิวที่กำลังเรียก</div>
-                <div class="queue-big">${cur ? escapeHtml(cur.queueNumber) : '--'}</div>
-                <div class="meta">
-                  <div class="meta-box"><div class="label">ทะเบียน</div><div class="value">${cur ? escapeHtml(cur.plateNumber || '-') : '-'}</div></div>
-                  <div class="meta-box"><div class="label">จังหวัด</div><div class="value">${cur ? escapeHtml(cur.province || '-') : '-'}</div></div>
-                  <div class="meta-box"><div class="label">ลูกค้า</div><div class="value">${cur ? escapeHtml(cur.customerName || '-') : '-'}</div></div>
-                  <div class="meta-box"><div class="label">จุดรับรถ</div><div class="value">${cur ? escapeHtml(cur.counter || '-') : '-'}</div></div>
-                </div>
-                <div class="btns3" style="margin-top:12px">
-                  <button class="primary" onclick="app.callNext()">เรียกคิวถัดไป</button>
-                  <button class="soft" onclick="app.recallCurrent()">เรียกซ้ำ</button>
-                  <button class="soft" onclick="app.finishCurrent()">จบคิว</button>
-                </div>
-              </section>
+// 🔊 เสียงแบบห้าง
+function speakQueue(q, plate, province, counter) {
+  const plateSpeech = formatPlateForSpeech(plate);
 
-              <section class="card">
-                <h2>${state.editingId ? 'แก้ไขข้อมูลคิว' : 'เพิ่มคิวลูกค้ารับรถ'}</h2>
-                <form id="queue-form" onsubmit="event.preventDefault(); app.submitQueue(this)">
-                  <div class="grid">
-                    <label class="field"><span>เลขคิว</span><input name="queueNumber" value="${escapeHtml(state.editingId ? (state.queues.find(q=>q.id===state.editingId)?.queueNumber||nextQueueNo()) : nextQueueNo())}" readonly></label>
-                    <label class="field"><span>จุดรับรถ</span><input name="counter" placeholder="เช่น 1"></label>
-                    <label class="field"><span>ชื่อลูกค้า</span><input name="customerName" placeholder="ชื่อผู้มารับรถ"></label>
-                    <label class="field"><span>ทะเบียนรถ</span><input name="plateNumber" placeholder="เช่น กข 1234"></label>
-                    <label class="field"><span>จังหวัด</span><input name="province" placeholder="เช่น พิษณุโลก"></label>
-                    <label class="field full"><span>หมายเหตุ</span><textarea name="notes" placeholder="รายละเอียดเพิ่มเติม"></textarea></label>
-                  </div>
-                  <div class="btns" style="margin-top:12px">
-                    <button class="primary" type="submit">${state.editingId ? 'บันทึกการแก้ไข' : 'เพิ่มคิว'}</button>
-                    <button class="soft" type="button" onclick="app.resetForm()">ล้างฟอร์ม</button>
-                  </div>
-                </form>
-              </section>
+  const text = `
+ขอเชิญลูกค้ารับรถ
+คิว ${q}
+ทะเบียน ${plateSpeech}
+จังหวัด ${province}
+ที่จุดรับรถ ${counter}
+`;
 
-              <section class="card">
-                <h2>ตั้งค่าการเชื่อมต่อและเสียง</h2>
-                <form onsubmit="event.preventDefault(); app.saveSettings(this)">
-                  <div class="grid">
-                    <label class="field"><span>ชื่อหน่วยงาน/บริษัท</span><input name="companyName" value="${escapeHtml(state.companyName)}"></label>
-                    <label class="field"><span>รหัสห้อง (ใช้ร่วมกันทุกเครื่อง)</span><input name="roomId" value="${escapeHtml(configState.roomId)}"></label>
-                    <label class="field full"><span>ลิงก์สไลด์สำหรับจอทีวี (Google Slides embed หรือหน้าเว็บประชาสัมพันธ์)</span><input name="tvSlidesUrl" value="${escapeHtml(state.tvSlidesUrl || '')}" placeholder="https://..."></label>
-                    <label class="field full"><span>Firebase config (JSON)</span><textarea name="firebaseConfigText" style="min-height:150px">${escapeHtml(configState.firebaseConfigText)}</textarea></label>
-                    <label class="field"><span>โทนเสียง</span><select name="voiceGender"><option value="female" ${state.voiceGender==='female'?'selected':''}>หญิง</option><option value="male" ${state.voiceGender==='male'?'selected':''}>ชาย</option></select></label>
-                    <label class="field"><span>โหมดเสียง</span><select name="ttsMode"><option value="auto" ${state.ttsMode==='auto'?'selected':''}>อัตโนมัติ (ออนไลน์ก่อน)</option><option value="online" ${state.ttsMode==='online'?'selected':''}>ออนไลน์</option><option value="browser" ${state.ttsMode==='browser'?'selected':''}>เสียงจากอุปกรณ์</option></select></label>
-                    <label class="field"><span>เสียงจากอุปกรณ์</span><select name="voiceURI"><option value="">เลือกอัตโนมัติ</option>${voiceOptions}</select></label>
-                    <label class="field full"><span>ลิงก์เสียงออนไลน์</span><input name="onlineTtsTemplate" value="${escapeHtml(state.onlineTtsTemplate || '')}" placeholder="https://...{text}"></label>
-                    <label class="field"><span>จำนวนครั้งที่เรียก</span><input type="number" min="1" max="5" name="repeatCount" value="${escapeHtml(String(state.repeatCount))}"></label>
-                    <label class="field"><span>ช่วงห่างแต่ละครั้ง (ms)</span><input type="number" min="1200" max="10000" step="100" name="repeatGap" value="${escapeHtml(String(state.repeatGap))}"></label>
-                    <label class="field"><span>ความเร็วเสียง</span><input type="number" min="0.7" max="1.2" step="0.01" name="speechRate" value="${escapeHtml(String(state.speechRate))}"></label>
-                    <label class="field" style="align-content:end"><span>ตัวเลือกเสริม</span><label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" name="announceProvince" ${state.announceProvince?'checked':''} style="width:auto"> อ่านจังหวัดในเสียงเรียก</label></label>
-                  </div>
-                  <div class="btns" style="margin-top:12px">
-                    <button class="primary" type="submit">บันทึกและเชื่อมต่อ Firebase</button>
-                    <button class="soft" type="button" onclick="app.testVoice()">ทดสอบเสียง</button>
-                  </div>
-                </form>
-                <div class="note">เครื่องที่เป็นจอทีวีและเครื่องที่กดคิว ต้องใส่ Firebase config เดียวกัน และรหัสห้องเดียวกัน<br>ถ้าเสียงในพีซีอ่านเพี้ยน ให้ใช้โหมดเสียงแบบออนไลน์ หรือปล่อยเป็นอัตโนมัติเพื่อให้ลองเสียงออนไลน์ก่อนแล้วค่อย fallback กลับมาใช้เสียงในเครื่อง</div>
-              </section>
-            </div>
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "th-TH";
+  msg.rate = 0.85;
 
-            <section class="card">
-              <div class="toolbar">
-                <input id="search-box" placeholder="ค้นหาเลขคิว / ทะเบียน / จังหวัด / ชื่อลูกค้า" oninput="app.render()">
-                <button class="soft" onclick="app.clearDone()">ลบรายการรับรถแล้ว</button>
-                <button class="danger" onclick="app.resetAll()">ล้างข้อมูลทั้งหมด</button>
-              </div>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>คิว</th><th>ชื่อลูกค้า</th><th>ทะเบียน</th><th>จังหวัด</th><th>จุดรับรถ</th><th>สถานะ</th><th>เวลาเรียก</th><th>จัดการ</th></tr></thead>
-                  <tbody>
-                    ${rows.length ? rows.map(q => `
-                      <tr>
-                        <td><strong>${escapeHtml(q.queueNumber)}</strong></td>
-                        <td>${escapeHtml(q.customerName || '-')}</td>
-                        <td>${escapeHtml(q.plateNumber || '-')}</td>
-                        <td>${escapeHtml(q.province || '-')}</td>
-                        <td>${escapeHtml(q.counter || '-')}</td>
-                        <td><span class="status ${q.status}">${statusLabel(q.status)}</span></td>
-                        <td>${escapeHtml(fmtTime(q.calledAt))}</td>
-                        <td>
-                          <div class="mini-actions">
-                            <button class="soft" onclick="app.callQueue('${q.id}')">เรียก</button>
-                            <button class="ghost" onclick="app.editQueue('${q.id}')">แก้ไข</button>
-                            <button class="danger" onclick="app.removeQueue('${q.id}')">ลบ</button>
-                          </div>
-                        </td>
-                      </tr>`).join('') : `<tr><td colspan="8" class="sub">ยังไม่มีรายการคิว</td></tr>`}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        </div>`;
-    }
+  speechSynthesis.cancel();
+  speechSynthesis.speak(msg);
+}
 
-    function tvView(){
-      const cur = currentQueue();
-      const recent = [...state.queues].filter(q => q.status === 'called' || q.status === 'done').sort((a,b) => (b.calledAt||0) - (a.calledAt||0)).slice(0,4);
-      const slides = normalizeSpaces(state.tvSlidesUrl || configState.tvSlidesUrl || '');
-      return `
-        <div class="tv">
-          <div class="slide-bg">${slides ? `<iframe src="${escapeHtml(slides)}" allowfullscreen></iframe>` : `<div class="slide-fallback">ยังไม่ได้ตั้งลิงก์สไลด์สำหรับจอทีวี</div>`}</div>
-          <div class="tv-overlay">
-            <div class="tv-topline">
-              <div class="tv-brand">${escapeHtml(state.companyName || 'ศูนย์บริการลูกค้ารับรถ')}</div>
-              <div class="tv-clock" id="tv-clock">--:--</div>
-            </div>
-            <div class="tv-call">
-              <div class="tv-qno">${cur ? escapeHtml(cur.queueNumber) : '--'}</div>
-              <div class="tv-info">
-                <div class="tv-row"><div class="k">ทะเบียน</div><div>${cur ? escapeHtml(cur.plateNumber || '-') : '-'}</div></div>
-                <div class="tv-row"><div class="k">จังหวัด</div><div>${cur ? escapeHtml(cur.province || '-') : '-'}</div></div>
-                <div class="tv-row"><div class="k">ลูกค้า</div><div>${cur ? escapeHtml(cur.customerName || '-') : '-'}</div></div>
-              </div>
-              <div class="tv-counter">จุดรับรถ ${cur ? escapeHtml(cur.counter || '-') : '-'}</div>
-            </div>
-            <div class="tv-recent">
-              ${recent.map(q => `<div class="tv-chip"><div class="q">${escapeHtml(q.queueNumber)}</div><div class="m">${escapeHtml(q.plateNumber || '-')} • ${escapeHtml(q.province || '-')}</div></div>`).join('') || `<div class="tv-chip"><div class="m">ยังไม่มีคิวที่เรียกล่าสุด</div></div>`}
-            </div>
-          </div>
-        </div>`;
-    }
+// ➕ เพิ่มคิว
+function addQueue() {
+  const plate = document.getElementById("plate").value;
+  const province = document.getElementById("province").value;
+  const counter = document.getElementById("counter").value;
 
-    function updateClock(){ const el = document.getElementById('tv-clock'); if (el) el.textContent = new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit'}).format(new Date()); }
-    function render(){
-      document.body.className = isTvMode ? 'tv' : '';
-      document.getElementById('app').innerHTML = isTvMode ? tvView() : controlView();
-      if (isTvMode) updateClock();
-    }
+  const qNumber = String(queue.length + 1).padStart(2, '0');
 
-    window.app = {
-      render, submitQueue, resetForm, saveSettings, editQueue, removeQueue, callQueue, callNext, recallCurrent, finishCurrent, clearDone, resetAll,
-      testVoice(){
-        const sample = { queueNumber: '01', plateNumber: 'กข 1234', province: 'พิษณุโลก', counter: '1' };
-        speak(sample);
-      }
-    };
+  queue.push({
+    number: qNumber,
+    plate,
+    province,
+    counter
+  });
 
-    if ('speechSynthesis' in window) {
-      getVoices();
-      window.speechSynthesis.onvoiceschanged = getVoices;
-    }
-    render();
-    if (!state.editingId && !isTvMode) setTimeout(resetForm, 0);
-    if (configState.firebaseConfigText && configState.firebaseConfigText.includes('apiKey')) connectFirebase();
-    if (isTvMode) setInterval(updateClock, 1000);
-  </script>
+  alert("เพิ่มคิว " + qNumber + " เรียบร้อย");
+}
+
+// ▶️ เรียกคิว
+function callNext() {
+  currentIndex++;
+
+  if (currentIndex >= queue.length) {
+    alert("ไม่มีคิวแล้ว");
+    return;
+  }
+
+  const q = queue[currentIndex];
+
+  document.getElementById("currentQueue").innerText = q.number;
+
+  speakQueue(q.number, q.plate, q.province, q.counter);
+}
+
+</script>
+
 </body>
 </html>
