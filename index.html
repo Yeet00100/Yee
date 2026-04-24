@@ -1,205 +1,160 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ระบบเรียกคิวรับรถ (RTDB)</title>
+<meta charset="UTF-8">
+<title>ระบบเรียกคิวรับรถ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body{font-family:sans-serif;background:#f3f4f6;margin:0}
-  .wrap{max-width:720px;margin:auto;padding:16px}
-  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
-  input,button{width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #ddd}
-  button{background:#0d6efd;color:#fff;font-weight:bold}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .big{font-size:56px;text-align:center;font-weight:bold}
-  .muted{color:#666;text-align:center}
-  /* TV mode */
-  .tv{position:fixed;inset:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center}
-  .tv .big{font-size:140px}
-  .tv .line{font-size:36px;margin-top:8px}
-  .hidden{display:none}
+body { font-family: Arial; background:#eef1f5; margin:0 }
+.container { max-width:1000px; margin:auto; padding:20px }
+.card { background:#fff; padding:15px; border-radius:10px; margin-bottom:15px }
+h2 { margin:0 0 10px }
+input,button { padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc }
+button { background:#1f4e79; color:#fff; cursor:pointer }
+table { width:100%; border-collapse:collapse; margin-top:10px }
+th,td { padding:10px; border-bottom:1px solid #ddd; text-align:center }
+.big { font-size:60px; font-weight:bold; text-align:center }
+.tv { position:fixed; inset:0; background:#000; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center }
+.tv .big { font-size:140px }
+.hidden { display:none }
 </style>
 </head>
+
 <body>
-<div class="wrap" id="adminUI">
+
+<div id="admin" class="container">
   <div class="card">
-    <h3>ตั้งค่า</h3>
-    <input id="roomId" placeholder="รหัสห้อง เช่น showroom-1" value="showroom-1"/>
+    <h2>เพิ่มคิว</h2>
+    <input id="plate" placeholder="ทะเบียน">
+    <input id="province" placeholder="จังหวัด">
+    <input id="counter" placeholder="จุดรับรถ">
+    <button onclick="addQueue()">เพิ่มคิว</button>
   </div>
 
   <div class="card">
-    <h3>เพิ่มคิว</h3>
-    <div class="row">
-      <input id="plate" placeholder="ทะเบียน เช่น กข1234"/>
-      <input id="province" placeholder="จังหวัด"/>
-    </div>
-    <input id="counter" placeholder="จุดรับรถ เช่น 1"/>
-    <button id="btnAdd">เพิ่มคิว</button>
+    <h2>คิวปัจจุบัน</h2>
+    <div class="big" id="current">--</div>
+    <button onclick="callNext()">เรียกคิวถัดไป</button>
   </div>
 
   <div class="card">
-    <h3>กำลังเรียก</h3>
-    <div class="big" id="curNum">--</div>
-    <div class="muted" id="curPlate">-</div>
-    <div class="muted" id="curProv">-</div>
-    <div class="muted" id="curCounter">-</div>
-  </div>
-
-  <div class="card">
-    <button id="btnCallNext">เรียกคิวถัดไป</button>
+    <h2>รายการคิว</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>คิว</th><th>ทะเบียน</th><th>จังหวัด</th><th>จุด</th><th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
   </div>
 </div>
 
-<!-- TV -->
-<div id="tvUI" class="tv hidden">
-  <div class="big" id="tvNum">--</div>
-  <div class="line" id="tvPlate"></div>
-  <div class="line" id="tvProv"></div>
-  <div class="line" id="tvCounter"></div>
+<div id="tv" class="tv hidden">
+  <div class="big" id="tvNumber">--</div>
+  <div id="tvPlate"></div>
+  <div id="tvProvince"></div>
+  <div id="tvCounter"></div>
 </div>
 
-<script type="module">
-// ================= Firebase (RTDB) =================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, update, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+<script>
+const isTV = location.search.includes("screen=tv");
+document.getElementById("admin").classList.toggle("hidden", isTV);
+document.getElementById("tv").classList.toggle("hidden", !isTV);
 
-// 🔑 ใช้ config ของคุณ
-const firebaseConfig = {
-  apiKey: "AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",
-  authDomain: "create-98245.firebaseapp.com",
-  databaseURL: "https://create-98245-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "create-98245",
-  storageBucket: "create-98245.firebasestorage.app",
-  messagingSenderId: "490139130684",
-  appId: "1:490139130684:web:a69bfbcb7e61dda952dc39",
-  measurementId: "G-RTBWFK2VRB"
-};
+let queue = [];
+let currentIndex = -1;
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// ================= Utils =================
-const qs = new URLSearchParams(location.search);
-const isTV = qs.get('screen') === 'tv';
-
-// toggle UI
-document.getElementById('adminUI').classList.toggle('hidden', isTV);
-document.getElementById('tvUI').classList.toggle('hidden', !isTV);
-
-// แปลงทะเบียนเป็นเสียงแบบห้าง (ทีละคำ ไม่ใช้ /)
-function formatPlateArray(text){
-  const thaiMap = {
-    'ก':'กอ ไก่','ข':'ขอ ไข่','ค':'คอ ควาย','ง':'งอ งู','จ':'จอ จาน','ฉ':'ฉอ ฉิ่ง',
-    'ช':'ชอ ช้าง','ซ':'ซอ โซ่','ด':'ดอ เด็ก','ต':'ตอ เต่า','ถ':'ถอ ถุง','ท':'ทอ ทหาร',
-    'น':'นอ หนู','บ':'บอ ใบไม้','ป':'ปอ ปลา','ผ':'ผอ ผึ้ง','ฝ':'ฝอ ฝา','พ':'พอ พาน',
-    'ฟ':'ฟอ ฟัน','ม':'มอ ม้า','ย':'ยอ ยักษ์','ร':'รอ เรือ','ล':'ลอ ลิง','ว':'วอ แหวน',
-    'ส':'สอ เสือ','ห':'หอ หีบ','อ':'ออ อ่าง','ฮ':'ฮอ นกฮูก'
-  };
-  const numMap = {'0':'ศูนย์','1':'หนึ่ง','2':'สอง','3':'สาม','4':'สี่','5':'ห้า','6':'หก','7':'เจ็ด','8':'แปด','9':'เก้า'};
-  return (text||'').replace(/[^ก-ฮ0-9]/g,'').split('').map(c => thaiMap[c]||numMap[c]||'');
-}
-function speakArray(arr){
+// 🔊 เสียงแบบห้าง (ไม่มีสแลช)
+function speakWords(arr){
   if(!arr.length) return;
   const msg = new SpeechSynthesisUtterance(arr[0]);
-  msg.lang = 'th-TH';
+  msg.lang = "th-TH";
   msg.rate = 0.9;
-  msg.onend = ()=> speakArray(arr.slice(1));
+  msg.onend = ()=> speakWords(arr.slice(1));
   speechSynthesis.speak(msg);
 }
+
+function plateToSpeech(text){
+  const map = {
+    '0':'ศูนย์','1':'หนึ่ง','2':'สอง','3':'สาม','4':'สี่',
+    '5':'ห้า','6':'หก','7':'เจ็ด','8':'แปด','9':'เก้า'
+  };
+  return text.replace(/[^ก-ฮ0-9]/g,'').split('').map(c => map[c] || c);
+}
+
 function speakQueue(q){
   speechSynthesis.cancel();
-  const plateArr = formatPlateArray(q.plate);
-  const seq = [
+  const words = [
     "ขอเชิญลูกค้ารับรถ",
-    "คิว " + q.number,
+    "คิว "+q.number,
     "ทะเบียน",
-    ...plateArr,
-    "จังหวัด " + (q.province||''),
-    "ที่จุดรับรถ " + (q.counter||'')
+    ...plateToSpeech(q.plate),
+    "จังหวัด "+q.province,
+    "ที่จุดรับรถ "+q.counter
   ];
-  speakArray(seq);
+  speakWords(words);
 }
 
-// ================= Core =================
-let roomId = document.getElementById('roomId').value.trim() || 'showroom-1';
-let roomRef = ref(db, 'queueRooms/' + roomId);
+// ➕ เพิ่มคิว
+function addQueue(){
+  const plate = document.getElementById("plate").value;
+  const province = document.getElementById("province").value;
+  const counter = document.getElementById("counter").value;
 
-// เปลี่ยน roomId ได้
-document.getElementById('roomId')?.addEventListener('change', (e)=>{
-  roomId = e.target.value.trim();
-  roomRef = ref(db, 'queueRooms/' + roomId);
-  subscribe(); // re-subscribe
-});
+  const num = String(queue.length+1).padStart(2,'0');
 
-// เพิ่มคิว
-document.getElementById('btnAdd')?.addEventListener('click', async ()=>{
-  const plate = document.getElementById('plate').value.trim();
-  const province = document.getElementById('province').value.trim();
-  const counter = document.getElementById('counter').value.trim();
+  queue.push({number:num,plate,province,counter});
+  render();
+}
 
-  // สร้างเลขคิว 2 หลักเรียงต่อ (นับจากจำนวนคิวเดิม)
-  const snap = await get(child(ref(db), `queueRooms/${roomId}/queues`));
-  const count = snap.exists() ? Object.keys(snap.val()).length : 0;
-  const num = String(count + 1).padStart(2,'0');
+// ▶️ เรียกคิว
+function callNext(){
+  currentIndex++;
+  if(currentIndex>=queue.length) return alert("ไม่มีคิว");
 
-  const q = { number:num, plate, province, counter };
+  const q = queue[currentIndex];
 
-  await set(ref(db, `queueRooms/${roomId}/queues/${num}`), q);
-  alert('เพิ่มคิว ' + num + ' เรียบร้อย');
-});
+  document.getElementById("current").innerText = q.number;
+  document.getElementById("tvNumber").innerText = q.number;
+  document.getElementById("tvPlate").innerText = q.plate;
+  document.getElementById("tvProvince").innerText = q.province;
+  document.getElementById("tvCounter").innerText = q.counter;
 
-// เรียกคิวถัดไป
-document.getElementById('btnCallNext')?.addEventListener('click', async ()=>{
-  const snap = await get(child(ref(db), `queueRooms/${roomId}/queues`));
-  if(!snap.exists()){ alert('ยังไม่มีคิว'); return; }
-
-  const queues = snap.val();
-  const keys = Object.keys(queues).sort(); // 01,02,03...
-  const curSnap = await get(child(ref(db), `queueRooms/${roomId}/currentQueue`));
-  let nextKey = keys[0];
-  if(curSnap.exists()){
-    const cur = curSnap.val();
-    const idx = keys.indexOf(cur.number);
-    nextKey = keys[idx+1] || null;
-  }
-  if(!nextKey){ alert('ไม่มีคิวถัดไป'); return; }
-
-  const q = queues[nextKey];
-  await update(ref(db, `queueRooms/${roomId}`), { currentQueue: q });
-
-  // เสียง (ให้ดังที่เครื่องกดคิว)
   speakQueue(q);
-});
+}
 
-// subscribe realtime (ทั้ง admin และ TV)
-let unsubscribe = null;
-function subscribe(){
-  if(unsubscribe){ /* RTDB ไม่มี off ใน modular แบบง่าย ๆ ในตัวอย่างนี้ */ }
-  onValue(roomRef, (snap)=>{
-    const data = snap.val();
-    if(!data) return;
+// ✏️ แก้ไขคิว
+function editQueue(i){
+  const q = queue[i];
+  const plate = prompt("ทะเบียน", q.plate);
+  const province = prompt("จังหวัด", q.province);
+  const counter = prompt("จุดรับรถ", q.counter);
 
-    const cur = data.currentQueue;
+  if(plate) q.plate = plate;
+  if(province) q.province = province;
+  if(counter) q.counter = counter;
 
-    // admin UI
-    if(cur){
-      document.getElementById('curNum').innerText = cur.number || '--';
-      document.getElementById('curPlate').innerText = cur.plate || '-';
-      document.getElementById('curProv').innerText = cur.province || '-';
-      document.getElementById('curCounter').innerText = cur.counter || '-';
-    }
+  render();
+}
 
-    // TV UI
-    if(cur){
-      document.getElementById('tvNum').innerText = cur.number || '--';
-      document.getElementById('tvPlate').innerText = 'ทะเบียน ' + (cur.plate||'');
-      document.getElementById('tvProv').innerText = 'จังหวัด ' + (cur.province||'');
-      document.getElementById('tvCounter').innerText = 'จุดรับรถ ' + (cur.counter||'');
-    }
+// 🧾 render ตาราง
+function render(){
+  const tbody = document.getElementById("list");
+  tbody.innerHTML = "";
+  queue.forEach((q,i)=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${q.number}</td>
+        <td>${q.plate}</td>
+        <td>${q.province}</td>
+        <td>${q.counter}</td>
+        <td><button onclick="editQueue(${i})">แก้ไข</button></td>
+      </tr>
+    `;
   });
 }
-subscribe();
-
 </script>
+
 </body>
 </html>
