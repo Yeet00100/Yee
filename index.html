@@ -1,1210 +1,205 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบเรียกคิวรับรถ</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ระบบเรียกคิวรับรถ (RTDB)</title>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1f2435;
-    --border: #2a3045;
-    --accent: #2d6ef0;
-    --accent2: #1a4db8;
-    --gold: #c9a84c;
-    --text: #e8ecf4;
-    --text-dim: #8892aa;
-    --text-muted: #505a70;
-    --green: #22c55e;
-    --red: #ef4444;
-    --yellow: #f59e0b;
-    --radius: 8px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'Sarabun', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 15px;
-  }
-
-  /* HEADER */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 17px; font-weight: 700; letter-spacing: 0.3px;
-  }
-  .logo-icon {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-  }
-  .header-right {
-    display: flex; align-items: center; gap: 20px;
-  }
-  .clock {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px; color: var(--text-dim);
-    letter-spacing: 1px;
-  }
-
-  /* MAIN LAYOUT */
-  .layout {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 0;
-    height: calc(100vh - 60px);
-  }
-
-  /* LEFT PANEL */
-  .left-panel {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .panel-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .panel-title {
-    font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-dim);
-  }
-  .badge {
-    font-family: 'IBM Plex Mono', monospace;
-    background: var(--accent);
-    color: #fff;
-    font-size: 11px; font-weight: 600;
-    padding: 2px 8px; border-radius: 20px;
-  }
-
-  /* ADD QUEUE FORM */
-  .add-form {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-  }
-  .form-title {
-    font-size: 13px; font-weight: 600;
-    color: var(--text-dim); margin-bottom: 12px;
-    text-transform: uppercase; letter-spacing: 0.8px;
-  }
-  .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  .form-row:last-of-type { margin-bottom: 0; }
-
-  .input-group {
-    display: flex; flex-direction: column; gap: 4px; flex: 1;
-  }
-  .input-group label {
-    font-size: 11px; color: var(--text-muted);
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  input, select {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 14px;
-    padding: 8px 10px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input:focus, select:focus { border-color: var(--accent); }
-  input::placeholder { color: var(--text-muted); }
-
-  .plate-input-wrap {
-    display: flex; gap: 6px; align-items: flex-end;
-  }
-  .plate-char {
-    width: 38px !important;
-    text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 15px; font-weight: 600;
-    text-transform: uppercase;
-    padding: 8px 4px;
-  }
-  .plate-sep {
-    color: var(--text-muted);
-    font-size: 18px; padding-bottom: 6px;
-    font-weight: 300;
-  }
-  .plate-num { width: 38px !important; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; padding: 8px 4px; }
-
-  select option { background: var(--surface2); }
-
-  .btn {
-    border: none; border-radius: var(--radius);
-    cursor: pointer; font-family: 'Sarabun', sans-serif;
-    font-weight: 600; transition: all 0.15s;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .btn-primary {
-    background: var(--accent); color: #fff;
-    padding: 9px 16px; font-size: 14px; width: 100%; justify-content: center;
-    margin-top: 10px;
-  }
-  .btn-primary:hover { background: var(--accent2); }
-  .btn-sm {
-    padding: 5px 10px; font-size: 12px;
-    background: var(--surface); border: 1px solid var(--border); color: var(--text-dim);
-  }
-  .btn-sm:hover { background: var(--border); color: var(--text); }
-  .btn-danger { background: transparent; border: 1px solid #3d1f1f; color: #ef6060; }
-  .btn-danger:hover { background: #2a1212; border-color: var(--red); color: var(--red); }
-  .btn-success { background: transparent; border: 1px solid #14401a; color: #4ade80; }
-  .btn-success:hover { background: #0f2e15; border-color: var(--green); color: var(--green); }
-
-  /* QUEUE LIST */
-  .queue-list {
-    flex: 1; overflow-y: auto; padding: 12px;
-  }
-  .queue-list::-webkit-scrollbar { width: 4px; }
-  .queue-list::-webkit-scrollbar-track { background: transparent; }
-  .queue-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .queue-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 6px;
-    transition: all 0.15s;
-    overflow: hidden;
-  }
-  .queue-item:hover { border-color: #3a4460; }
-  .queue-item.calling {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(45,110,240,0.15);
-    animation: pulse-border 1.5s ease-in-out infinite;
-  }
-  .queue-item.done { opacity: 0.4; }
-
-  @keyframes pulse-border {
-    0%,100% { box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(45,110,240,0.1); }
-    50% { box-shadow: 0 0 0 1px var(--accent), 0 0 30px rgba(45,110,240,0.25); }
-  }
-
-  .queue-item-main {
-    padding: 10px 12px;
-    display: flex; align-items: center; gap: 10px; cursor: pointer;
-  }
-  .q-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 600;
-    color: var(--text-dim); min-width: 36px;
-  }
-  .queue-item.calling .q-num { color: var(--accent); }
-  .q-info { flex: 1; min-width: 0; }
-  .q-plate {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 16px; font-weight: 600;
-    letter-spacing: 2px;
-    display: flex; gap: 3px; align-items: center;
-    flex-wrap: wrap;
-  }
-  .plate-letter { color: var(--text); }
-  .plate-number { color: var(--gold); }
-  .q-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .q-zone {
-    font-size: 12px; font-weight: 600;
-    padding: 3px 8px; border-radius: 4px;
-    background: var(--surface2);
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  .queue-item.calling .q-zone {
-    background: rgba(45,110,240,0.15); color: var(--accent);
-  }
-  .q-actions {
-    display: flex; gap: 6px; padding: 0 12px 10px; flex-wrap: wrap;
-  }
-
-  /* STATUS BADGE */
-  .status-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--text-muted); flex-shrink: 0;
-  }
-  .queue-item.calling .status-dot { background: var(--accent); animation: blink 1s infinite; }
-  .queue-item.done .status-dot { background: var(--green); }
-  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-
-  /* RIGHT PANEL - DISPLAY */
-  .right-panel {
-    display: flex; flex-direction: column;
-    background: var(--bg);
-    overflow: hidden;
-  }
-
-  /* NOW CALLING */
-  .now-calling {
-    flex: 1;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 40px 60px;
-    position: relative;
-    overflow: hidden;
-  }
-  .now-calling::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 50% 40%, rgba(45,110,240,0.08) 0%, transparent 65%);
-    pointer-events: none;
-  }
-
-  .calling-label {
-    font-size: 12px; font-weight: 700;
-    letter-spacing: 4px; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 24px;
-  }
-  .calling-queue-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(48px, 8vw, 80px);
-    font-weight: 600;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .calling-queue-num.active { color: var(--accent); }
-
-  .calling-plate-display {
-    display: flex; align-items: center; gap: 6px;
-    margin-bottom: 20px;
-    flex-wrap: wrap; justify-content: center;
-  }
-  .cp-char {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(40px, 7vw, 72px);
-    font-weight: 600;
-    width: clamp(44px, 7vw, 76px);
-    height: clamp(56px, 9vw, 96px);
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    letter-spacing: 0;
-    transition: all 0.3s;
-    color: var(--text-muted);
-  }
-  .cp-char.lit-letter { color: var(--text); border-color: #3a4460; }
-  .cp-char.lit-number { color: var(--gold); border-color: #4a3a20; }
-  .cp-char.current-lit {
-    transform: scale(1.08);
-    box-shadow: 0 0 0 2px var(--accent), 0 0 24px rgba(45,110,240,0.3);
-    border-color: var(--accent);
-  }
-  .cp-char.current-lit.letter { color: #fff; }
-  .cp-char.current-lit.number { color: #ffd06b; }
-
-  .calling-zone-display {
-    font-size: clamp(16px, 3vw, 24px);
-    font-weight: 600; color: var(--text-dim);
-    margin-bottom: 8px;
-    padding: 8px 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-  }
-  .calling-province {
-    font-size: 14px; color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  /* BOTTOM - UP NEXT */
-  .up-next-bar {
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 12px 24px;
-  }
-  .up-next-title {
-    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;
-  }
-  .up-next-list {
-    display: flex; gap: 10px; overflow-x: auto;
-    padding-bottom: 2px;
-  }
-  .up-next-list::-webkit-scrollbar { height: 3px; }
-  .up-next-list::-webkit-scrollbar-thumb { background: var(--border); }
-  .up-next-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 14px;
-    flex-shrink: 0;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .up-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; color: var(--text-muted);
-  }
-  .up-plate {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; letter-spacing: 1.5px;
-  }
-  .up-plate .l { color: var(--text); }
-  .up-plate .n { color: var(--gold); }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7); z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    width: 420px; max-width: 90vw;
-  }
-  .modal-title {
-    font-size: 15px; font-weight: 700; margin-bottom: 20px;
-    padding-bottom: 14px; border-bottom: 1px solid var(--border);
-  }
-  .modal-actions {
-    display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;
-    padding-top: 14px; border-top: 1px solid var(--border);
-  }
-
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 16px;
-    font-size: 13px; color: var(--text);
-    z-index: 300; transform: translateY(80px); opacity: 0;
-    transition: all 0.25s; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  .empty-state {
-    text-align: center; padding: 40px 20px;
-    color: var(--text-muted); font-size: 13px; line-height: 2;
-  }
-  .empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.5; }
-
-  /* Drag */
-  .queue-item.dragging { opacity: 0.5; }
-  .queue-item.drag-over { border-color: var(--accent); background: rgba(45,110,240,0.05); }
-
-  .divider { width: 1px; height: 20px; background: var(--border); }
-
-  .calling-idle { text-align: center; color: var(--text-muted); }
-  .calling-idle .idle-icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
-  .calling-idle p { font-size: 14px; }
-
-  /* SPEED CONTROL */
-  .speed-row {
-    display: flex; align-items: center; gap: 10px; padding: 0 2px;
-  }
-  .speed-label { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
-  .speed-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; color: var(--accent); min-width: 26px; text-align: right;
-  }
-  input[type=range] {
-    -webkit-appearance: none; appearance: none;
-    height: 4px; border-radius: 2px;
-    background: var(--border); outline: none;
-    padding: 0; width: 100%; border: none;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
-    border: 2px solid var(--bg);
-  }
-  input[type=range]::-moz-range-thumb {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
-    border: 2px solid var(--bg); border-style: solid;
-  }
+  body{font-family:sans-serif;background:#f3f4f6;margin:0}
+  .wrap{max-width:720px;margin:auto;padding:16px}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+  input,button{width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #ddd}
+  button{background:#0d6efd;color:#fff;font-weight:bold}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .big{font-size:56px;text-align:center;font-weight:bold}
+  .muted{color:#666;text-align:center}
+  /* TV mode */
+  .tv{position:fixed;inset:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  .tv .big{font-size:140px}
+  .tv .line{font-size:36px;margin-top:8px}
+  .hidden{display:none}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="logo">
-    <div class="logo-icon">🚗</div>
-    ระบบเรียกคิวรับรถ
-  </div>
-  <div class="header-right">
-    <div class="speed-row" style="min-width:200px">
-      <span class="speed-label">🔊 ความเร็วพูด</span>
-      <input type="range" id="speed-slider" min="0.5" max="1.8" step="0.05" value="0.88"
-             style="width:80px" oninput="updateSpeed(this.value)">
-      <span class="speed-val" id="speed-val">×0.9</span>
-    </div>
-    <div class="divider"></div>
-    <div class="speed-row" style="min-width:190px">
-      <span class="speed-label">🔉 ระดับเสียง</span>
-      <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="1"
-             style="width:80px" oninput="updateVolume(this.value)">
-      <span class="speed-val" id="vol-val">100%</span>
-    </div>
-    <div class="divider"></div>
-    <button class="btn btn-sm" onclick="openZoneModal()">⚙️ จุดรับรถ</button>
-    <div class="divider"></div>
-    <div class="clock" id="clock">--:--:--</div>
-    <div class="divider"></div>
-    <button class="btn btn-sm" onclick="clearDone()">ล้างคิวที่รับแล้ว</button>
-  </div>
-</header>
-
-<div class="layout">
-  <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <div class="panel-header">
-      <span class="panel-title">รายการคิว</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:var(--text-muted);font-weight:600">คิวถัดไป</span>
-        <input type="number" id="next-num-input" min="1" max="9999" value="1"
-          onchange="updateNextNum(this.value)"
-          style="width:56px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;
-                 text-align:center;padding:4px 6px;border-radius:6px;
-                 background:var(--bg);border:1px solid var(--border);color:var(--accent)">
-        <span class="badge" id="queue-count">0</span>
-      </div>
-    </div>
-
-    <!-- ADD FORM -->
-    <div class="add-form">
-      <div class="form-title">เพิ่มคิวใหม่</div>
-
-      <div class="form-row">
-        <div class="input-group">
-          <label>ทะเบียนรถ (อักษร - ตัวเลข)</label>
-          <div class="plate-input-wrap" id="plate-inputs">
-            <input class="plate-char" id="c1" maxlength="1" placeholder="ก" oninput="moveNext(this,'c2')">
-            <input class="plate-char" id="c2" maxlength="1" placeholder="ข" oninput="moveNext(this,'c3')">
-            <input class="plate-char" id="c3" maxlength="1" placeholder="ค" oninput="moveNext(this,'n1')">
-            <span class="plate-sep">–</span>
-            <input class="plate-num" id="n1" maxlength="1" placeholder="1" oninput="moveNext(this,'n2')" type="tel">
-            <input class="plate-num" id="n2" maxlength="1" placeholder="2" oninput="moveNext(this,'n3')" type="tel">
-            <input class="plate-num" id="n3" maxlength="1" placeholder="3" oninput="moveNext(this,'n4')" type="tel">
-            <input class="plate-num" id="n4" maxlength="1" placeholder="4" type="tel">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="input-group">
-          <label>จังหวัด</label>
-          <select id="province">
-            <option value="">-- เลือกจังหวัด --</option>
-            <option>กรุงเทพมหานคร</option><option>กระบี่</option><option>กาญจนบุรี</option>
-            <option>กาฬสินธุ์</option><option>กำแพงเพชร</option><option>ขอนแก่น</option>
-            <option>จันทบุรี</option><option>ฉะเชิงเทรา</option><option>ชลบุรี</option>
-            <option>ชัยนาท</option><option>ชัยภูมิ</option><option>ชุมพร</option>
-            <option>เชียงราย</option><option>เชียงใหม่</option><option>ตรัง</option>
-            <option>ตราด</option><option>ตาก</option><option>นครนายก</option>
-            <option>นครปฐม</option><option>นครพนม</option><option>นครราชสีมา</option>
-            <option>นครศรีธรรมราช</option><option>นครสวรรค์</option><option>นนทบุรี</option>
-            <option>นราธิวาส</option><option>น่าน</option><option>บึงกาฬ</option>
-            <option>บุรีรัมย์</option><option>ปทุมธานี</option><option>ประจวบคีรีขันธ์</option>
-            <option>ปราจีนบุรี</option><option>ปัตตานี</option><option>พระนครศรีอยุธยา</option>
-            <option>พะเยา</option><option>พังงา</option><option>พัทลุง</option>
-            <option>พิจิตร</option><option>พิษณุโลก</option><option>เพชรบุรี</option>
-            <option>เพชรบูรณ์</option><option>แพร่</option><option>พระนครศรีอยุธยา</option>
-            <option>ภูเก็ต</option><option>มหาสารคาม</option><option>มุกดาหาร</option>
-            <option>แม่ฮ่องสอน</option><option>ยโสธร</option><option>ยะลา</option>
-            <option>ร้อยเอ็ด</option><option>ระนอง</option><option>ระยอง</option>
-            <option>ราชบุรี</option><option>ลพบุรี</option><option>ลำปาง</option>
-            <option>ลำพูน</option><option>เลย</option><option>ศรีสะเกษ</option>
-            <option>สกลนคร</option><option>สงขลา</option><option>สตูล</option>
-            <option>สมุทรปราการ</option><option>สมุทรสงคราม</option><option>สมุทรสาคร</option>
-            <option>สระแก้ว</option><option>สระบุรี</option><option>สิงห์บุรี</option>
-            <option>สุโขทัย</option><option>สุพรรณบุรี</option><option>สุราษฎร์ธานี</option>
-            <option>สุรินทร์</option><option>หนองคาย</option><option>หนองบัวลำภู</option>
-            <option>อ่างทอง</option><option>อำนาจเจริญ</option><option>อุดรธานี</option>
-            <option>อุตรดิตถ์</option><option>อุทัยธานี</option><option>อุบลราชธานี</option>
-          </select>
-        </div>
-        <div class="input-group" style="max-width:140px">
-          <label>จุดรับรถ</label>
-          <select id="zone"></select>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" onclick="addQueue()">+ เพิ่มคิว</button>
-    </div>
-
-    <!-- QUEUE LIST -->
-    <div class="queue-list" id="queue-list">
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <p>ยังไม่มีคิว<br>เพิ่มคิวด้านบนเพื่อเริ่มต้น</p>
-      </div>
-    </div>
+<div class="wrap" id="adminUI">
+  <div class="card">
+    <h3>ตั้งค่า</h3>
+    <input id="roomId" placeholder="รหัสห้อง เช่น showroom-1" value="showroom-1"/>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-    <div class="now-calling" id="now-calling">
-      <div class="calling-idle">
-        <div class="idle-icon">🔔</div>
-        <p>ยังไม่มีการเรียกคิว</p>
-      </div>
+  <div class="card">
+    <h3>เพิ่มคิว</h3>
+    <div class="row">
+      <input id="plate" placeholder="ทะเบียน เช่น กข1234"/>
+      <input id="province" placeholder="จังหวัด"/>
     </div>
-    <div class="up-next-bar">
-      <div class="up-next-title">รอเรียกลำดับถัดไป</div>
-      <div class="up-next-list" id="up-next-list">
-        <span style="font-size:12px;color:var(--text-muted);">—</span>
-      </div>
-    </div>
+    <input id="counter" placeholder="จุดรับรถ เช่น 1"/>
+    <button id="btnAdd">เพิ่มคิว</button>
+  </div>
+
+  <div class="card">
+    <h3>กำลังเรียก</h3>
+    <div class="big" id="curNum">--</div>
+    <div class="muted" id="curPlate">-</div>
+    <div class="muted" id="curProv">-</div>
+    <div class="muted" id="curCounter">-</div>
+  </div>
+
+  <div class="card">
+    <button id="btnCallNext">เรียกคิวถัดไป</button>
   </div>
 </div>
 
-<!-- EDIT MODAL -->
-<div class="modal-overlay" id="edit-modal">
-  <div class="modal">
-    <div class="modal-title">✏️ แก้ไขข้อมูลคิว</div>
-    <input type="hidden" id="edit-id">
-    <div class="form-row" style="margin-bottom:10px">
-      <div class="input-group" style="max-width:120px">
-        <label>ลำดับคิว</label>
-        <input type="number" id="e-qnum" min="1" max="999" step="1"
-               style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;text-align:center">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="input-group">
-        <label>ทะเบียนรถ</label>
-        <div class="plate-input-wrap">
-          <input class="plate-char" id="ec1" maxlength="1" oninput="moveNext(this,'ec2')">
-          <input class="plate-char" id="ec2" maxlength="1" oninput="moveNext(this,'ec3')">
-          <input class="plate-char" id="ec3" maxlength="1" oninput="moveNext(this,'en1')">
-          <span class="plate-sep">–</span>
-          <input class="plate-num" id="en1" maxlength="1" oninput="moveNext(this,'en2')" type="tel">
-          <input class="plate-num" id="en2" maxlength="1" oninput="moveNext(this,'en3')" type="tel">
-          <input class="plate-num" id="en3" maxlength="1" oninput="moveNext(this,'en4')" type="tel">
-          <input class="plate-num" id="en4" maxlength="1" type="tel">
-        </div>
-      </div>
-    </div>
-    <div class="form-row" style="margin-top:10px">
-      <div class="input-group">
-        <label>จังหวัด</label>
-        <select id="e-province">
-          <option value="">-- เลือกจังหวัด --</option>
-          <option>กรุงเทพมหานคร</option><option>ชลบุรี</option><option>เชียงใหม่</option>
-          <option>นนทบุรี</option><option>ปทุมธานี</option><option>พระนครศรีอยุธยา</option>
-          <option>ภูเก็ต</option><option>ระยอง</option><option>สมุทรปราการ</option>
-          <option>ขอนแก่น</option><option>นครราชสีมา</option><option>อุดรธานี</option>
-          <option>สงขลา</option><option>สุราษฎร์ธานี</option>
-        </select>
-      </div>
-      <div class="input-group" style="max-width:140px">
-        <label>จุดรับรถ</label>
-        <select id="e-zone"></select>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-sm" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-primary" style="width:auto;padding:9px 20px" onclick="saveEdit()">บันทึก</button>
-    </div>
-  </div>
+<!-- TV -->
+<div id="tvUI" class="tv hidden">
+  <div class="big" id="tvNum">--</div>
+  <div class="line" id="tvPlate"></div>
+  <div class="line" id="tvProv"></div>
+  <div class="line" id="tvCounter"></div>
 </div>
 
-<div class="toast" id="toast"></div>
+<script type="module">
+// ================= Firebase (RTDB) =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, update, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-<!-- ZONE MANAGEMENT MODAL -->
-<div class="modal-overlay" id="zone-modal">
-  <div class="modal" style="width:460px">
-    <div class="modal-title">⚙️ จัดการจุดรับรถ</div>
-    <div id="zone-list-edit" style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="zone-new-input" placeholder="ชื่อจุดรับรถใหม่ เช่น ประตู D"
-             style="flex:1" onkeydown="if(event.key==='Enter')addZone()">
-      <button class="btn btn-primary" style="width:auto;margin-top:0;padding:9px 16px" onclick="addZone()">+ เพิ่ม</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-sm" onclick="closeZoneModal()">ปิด</button>
-    </div>
-  </div>
-</div>
-
-<script>
-let queues = [];
-let nextNum = 1;
-let callingInterval = null;
-let speechRate = 0.88;
-let speechVolume = 1.0;
-
-function updateSpeed(val) {
-  speechRate = parseFloat(val);
-  document.getElementById('speed-val').textContent = '×' + speechRate.toFixed(1);
-}
-
-function updateVolume(val) {
-  speechVolume = parseFloat(val);
-  document.getElementById('vol-val').textContent = Math.round(speechVolume * 100) + '%';
-}
-
-// ── ZONE DATA ──────────────────────────────────────────
-let zones = ['ประตู A','ประตู B','ประตู C','ช่อง 1','ช่อง 2','ช่อง 3','ลานจอด 1','ลานจอด 2'];
-
-function renderZoneSelects() {
-  ['zone','e-zone'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const cur = sel.value;
-    sel.innerHTML = zones.map(z => `<option${z===cur?' selected':''}>${z}</option>`).join('');
-  });
-}
-
-function openZoneModal() {
-  renderZoneListEdit();
-  document.getElementById('zone-modal').classList.add('open');
-}
-function closeZoneModal() {
-  document.getElementById('zone-modal').classList.remove('open');
-}
-
-function renderZoneListEdit() {
-  document.getElementById('zone-list-edit').innerHTML = zones.map((z, i) => `
-    <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px">
-      <span style="flex:1;font-size:14px">${z}</span>
-      <button class="btn btn-sm" onclick="moveZone(${i},-1)" ${i===0?'disabled':''} style="padding:3px 8px">↑</button>
-      <button class="btn btn-sm" onclick="moveZone(${i},1)"  ${i===zones.length-1?'disabled':''} style="padding:3px 8px">↓</button>
-      <button class="btn btn-sm" onclick="editZoneName(${i})" style="padding:3px 8px">✏️</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteZone(${i})" style="padding:3px 8px">🗑</button>
-    </div>
-  `).join('');
-}
-
-function addZone() {
-  const inp = document.getElementById('zone-new-input');
-  const name = inp.value.trim();
-  if (!name) return;
-  if (zones.includes(name)) { toast('ชื่อนี้มีอยู่แล้ว'); return; }
-  zones.push(name);
-  inp.value = '';
-  renderZoneSelects();
-  renderZoneListEdit();
-  toast(`เพิ่ม "${name}" แล้ว`);
-}
-
-function deleteZone(i) {
-  if (zones.length <= 1) { toast('ต้องมีอย่างน้อย 1 จุดรับรถ'); return; }
-  const name = zones[i];
-  zones.splice(i, 1);
-  renderZoneSelects();
-  renderZoneListEdit();
-  toast(`ลบ "${name}" แล้ว`);
-}
-
-function moveZone(i, dir) {
-  const j = i + dir;
-  if (j < 0 || j >= zones.length) return;
-  [zones[i], zones[j]] = [zones[j], zones[i]];
-  renderZoneSelects();
-  renderZoneListEdit();
-}
-
-function editZoneName(i) {
-  const oldName = zones[i];
-  const newName = prompt('แก้ไขชื่อจุดรับรถ:', oldName);
-  if (!newName || newName.trim() === oldName) return;
-  if (zones.includes(newName.trim())) { toast('ชื่อนี้มีอยู่แล้ว'); return; }
-  // update all queues that used old name
-  queues.forEach(q => { if (q.zone === oldName) q.zone = newName.trim(); });
-  zones[i] = newName.trim();
-  renderZoneSelects();
-  renderZoneListEdit();
-  renderAll();
-  toast(`เปลี่ยนเป็น "${newName.trim()}" แล้ว`);
-}
-
-// =====================================================
-// AUDIO ENGINE — Web Audio API chime + Speech API TTS
-// =====================================================
-let audioCtx = null;
-let audioUnlocked = false;
-
-// Unlock AudioContext on first user interaction
-function unlockAudio() {
-  if (audioUnlocked) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    audioUnlocked = true;
-  } catch(e) {}
-}
-document.addEventListener('click', unlockAudio, { once: false });
-document.addEventListener('touchstart', unlockAudio, { once: false });
-
-// Play a ding-dong chime sequence
-function playChime(onDone) {
-  unlockAudio();
-  if (!audioCtx) { onDone && onDone(); return; }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-
-  // Notes: ding-dong-ding
-  const notes = [
-    { freq: 880, start: 0.0,  dur: 0.35 },
-    { freq: 660, start: 0.4,  dur: 0.35 },
-    { freq: 880, start: 0.8,  dur: 0.35 },
-    { freq: 1100,start: 1.2,  dur: 0.45 },
-  ];
-  const totalDur = 1.8;
-
-  notes.forEach(({ freq, start, dur }) => {
-    const osc  = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
-
-    gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
-    gain.gain.linearRampToValueAtTime(0.55 * speechVolume, audioCtx.currentTime + start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
-
-    osc.start(audioCtx.currentTime + start);
-    osc.stop(audioCtx.currentTime + start + dur + 0.05);
-  });
-
-  setTimeout(() => { onDone && onDone(); }, totalDur * 1000);
-}
-
-// Speech API — try to speak, degrade gracefully
-const synth = window.speechSynthesis;
-let thVoice = null;
-let voicesLoaded = false;
-
-function loadVoices() {
-  const voices = synth ? synth.getVoices() : [];
-  thVoice = voices.find(v => v.lang === 'th-TH')
-         || voices.find(v => v.lang && v.lang.startsWith('th'))
-         || voices.find(v => v.lang && v.lang.startsWith('en'))
-         || voices[0] || null;
-  voicesLoaded = voices.length > 0;
-}
-if (synth) {
-  loadVoices();
-  synth.onvoiceschanged = loadVoices;
-}
-
-function speakText(text, onDone) {
-  if (!synth) { onDone && onDone(); return; }
-  synth.cancel();
-  setTimeout(() => {
-    const utt = new SpeechSynthesisUtterance(text);
-    if (!voicesLoaded) loadVoices();
-    if (thVoice) utt.voice = thVoice;
-    utt.lang   = thVoice ? thVoice.lang : 'th-TH';
-    utt.rate   = speechRate;
-    utt.pitch  = 1.2;          // higher = less drop at end of short words
-    utt.volume = speechVolume;
-    utt.onend  = () => { onDone && onDone(); };
-    utt.onerror = () => { onDone && onDone(); };
-    synth.speak(utt);
-  }, 80);
-}
-
-// Full announcement: chime → speak → pause → repeat once
-function announce(q) {
-  const text = buildAnnounceText(q);
-  playChime(() => {
-    speakText(text, () => {
-      setTimeout(() => {
-        playChime(() => speakText(text));
-      }, 800);
-    });
-  });
-}
-
-// Thai digit words
-const thDigits = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
-
-// Thai alphabet phonetic names for TTS clarity
-const thCharName = {
-  'ก':'กอ','ข':'ขอ','ค':'คอ','ง':'งอ','จ':'จอ','ฉ':'ฉอ','ช':'ชอ',
-  'ซ':'ซอ','ญ':'ญอ','ด':'ดอ','ต':'ตอ','ถ':'ถอ','ท':'ทอ','น':'นอ',
-  'บ':'บอ','ป':'ปอ','ผ':'ผอ','ฝ':'ฝอ','พ':'พอ','ฟ':'ฟอ','ภ':'ภอ',
-  'ม':'มอ','ย':'ยอ','ร':'รอ','ล':'ลอ','ว':'วอ','ส':'สอ','ห':'หอ',
-  'อ':'ออ','ฮ':'ฮอ','ฆ':'ฆอ','ณ':'ณอ','ธ':'ธอ','ฑ':'ฑอ','ฒ':'ฒอ',
-  'ศ':'ศอ','ษ':'ษอ','ฌ':'ฌอ','ฏ':'ฏอ','ฐ':'ฐอ','ฃ':'ฃอ','ฅ':'ฅอ',
+// 🔑 ใช้ config ของคุณ
+const firebaseConfig = {
+  apiKey: "AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",
+  authDomain: "create-98245.firebaseapp.com",
+  databaseURL: "https://create-98245-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "create-98245",
+  storageBucket: "create-98245.firebasestorage.app",
+  messagingSenderId: "490139130684",
+  appId: "1:490139130684:web:a69bfbcb7e61dda952dc39",
+  measurementId: "G-RTBWFK2VRB"
 };
 
-function charSpell(ch) {
-  if (!ch) return '';
-  return thCharName[ch] || ch;
-}
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-function numSpell(n) {
-  const d = parseInt(n, 10);
-  return isNaN(d) ? '' : thDigits[d] || n;
-}
+// ================= Utils =================
+const qs = new URLSearchParams(location.search);
+const isTV = qs.get('screen') === 'tv';
 
-// Queue number in Thai words e.g. 12 → "สิบสอง"
-const thTens = ['','สิบ','ยี่สิบ','สามสิบ','สี่สิบ','ห้าสิบ','หกสิบ','เจ็ดสิบ','แปดสิบ','เก้าสิบ'];
-function qNumThai(n) {
-  if (n < 10) return thDigits[n];
-  const tens = Math.floor(n / 10);
-  const ones = n % 10;
-  const tensWord = tens === 1 ? 'สิบ' : thTens[tens];
-  const onesWord = ones === 1 ? 'เอ็ด' : (ones === 0 ? '' : thDigits[ones]);
-  return tensWord + onesWord;
-}
+// toggle UI
+document.getElementById('adminUI').classList.toggle('hidden', isTV);
+document.getElementById('tvUI').classList.toggle('hidden', !isTV);
 
-// Build clear spoken announcement — pad each char with a filler to prevent TTS pitch drop
-function buildAnnounceText(q) {
-  const qWord = qNumThai(q.num);
-
-  // Each letter: say full name + trailing "ไ" vowel forces engine to sustain pitch
-  const charWords = q.chars.filter(Boolean)
-    .map(ch => charSpell(ch) + 'ไ')   // "กอไ" "ขอไ" — trailing vowel anchors pitch
-    .join('  ');                        // double space = longer pause between chars
-
-  const numWords = q.nums.filter(Boolean)
-    .map(numSpell)
-    .join('  ');
-
-  return (
-    `เชิญ คิวที่ ${qWord} ` +
-    `ทะเบียน ${charWords} ` +
-    `${numWords} ` +
-    `จังหวัด ${q.province} ` +
-    `รับรถได้ที่ ${q.zone}`
-  );
-}
-
-function updateNextNum(val) {
-  const n = parseInt(val, 10);
-  if (!isNaN(n) && n >= 1) nextNum = n;
-  document.getElementById('next-num-input').value = nextNum;
-}
-
-function padNum(n) { return String(n).padStart(2,'0'); }
-
-function getPlate(q) {
-  return q.chars.join('') + '-' + q.nums.join('');
-}
-
-function plateHTML(q) {
-  let h = '';
-  q.chars.forEach(c => { h += `<span class="l">${c}</span>`; });
-  q.nums.forEach(n => { n && (h += `<span class="n">${n}</span>`); });
-  return h;
-}
-
-function plateFull(q) {
-  return q.chars.filter(Boolean).join('') + q.nums.filter(Boolean).join('');
-}
-
-// CLOCK
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('th-TH', {hour12:false});
-}
-setInterval(updateClock, 1000); updateClock();
-
-// MOVE FOCUS
-function moveNext(el, nextId) {
-  el.value = el.value.toUpperCase();
-  if (el.value.length >= 1 && nextId) {
-    document.getElementById(nextId)?.focus();
-  }
-}
-
-// ADD QUEUE
-function addQueue() {
-  const c1 = document.getElementById('c1').value.trim().toUpperCase();
-  const c2 = document.getElementById('c2').value.trim().toUpperCase();
-  const c3 = document.getElementById('c3').value.trim().toUpperCase();
-  const n1 = document.getElementById('n1').value.trim();
-  const n2 = document.getElementById('n2').value.trim();
-  const n3 = document.getElementById('n3').value.trim();
-  const n4 = document.getElementById('n4').value.trim();
-  const province = document.getElementById('province').value;
-  const zone = document.getElementById('zone').value;
-
-  if (!c1 && !n1) { toast('กรุณากรอกทะเบียนรถอย่างน้อย 1 ช่อง'); return; }
-  if (!province) { toast('กรุณาเลือกจังหวัด'); return; }
-
-  const q = {
-    id: Date.now(),
-    num: nextNum++,
-    chars: [c1, c2, c3],
-    nums: [n1, n2, n3, n4],
-    province, zone,
-    status: 'waiting'
+// แปลงทะเบียนเป็นเสียงแบบห้าง (ทีละคำ ไม่ใช้ /)
+function formatPlateArray(text){
+  const thaiMap = {
+    'ก':'กอ ไก่','ข':'ขอ ไข่','ค':'คอ ควาย','ง':'งอ งู','จ':'จอ จาน','ฉ':'ฉอ ฉิ่ง',
+    'ช':'ชอ ช้าง','ซ':'ซอ โซ่','ด':'ดอ เด็ก','ต':'ตอ เต่า','ถ':'ถอ ถุง','ท':'ทอ ทหาร',
+    'น':'นอ หนู','บ':'บอ ใบไม้','ป':'ปอ ปลา','ผ':'ผอ ผึ้ง','ฝ':'ฝอ ฝา','พ':'พอ พาน',
+    'ฟ':'ฟอ ฟัน','ม':'มอ ม้า','ย':'ยอ ยักษ์','ร':'รอ เรือ','ล':'ลอ ลิง','ว':'วอ แหวน',
+    'ส':'สอ เสือ','ห':'หอ หีบ','อ':'ออ อ่าง','ฮ':'ฮอ นกฮูก'
   };
-  queues.push(q);
-  renderAll();
-  clearForm();
-  document.getElementById('next-num-input').value = nextNum;
-  toast(`เพิ่มคิว ${padNum(q.num)} เรียบร้อย`);
+  const numMap = {'0':'ศูนย์','1':'หนึ่ง','2':'สอง','3':'สาม','4':'สี่','5':'ห้า','6':'หก','7':'เจ็ด','8':'แปด','9':'เก้า'};
+  return (text||'').replace(/[^ก-ฮ0-9]/g,'').split('').map(c => thaiMap[c]||numMap[c]||'');
+}
+function speakArray(arr){
+  if(!arr.length) return;
+  const msg = new SpeechSynthesisUtterance(arr[0]);
+  msg.lang = 'th-TH';
+  msg.rate = 0.9;
+  msg.onend = ()=> speakArray(arr.slice(1));
+  speechSynthesis.speak(msg);
+}
+function speakQueue(q){
+  speechSynthesis.cancel();
+  const plateArr = formatPlateArray(q.plate);
+  const seq = [
+    "ขอเชิญลูกค้ารับรถ",
+    "คิว " + q.number,
+    "ทะเบียน",
+    ...plateArr,
+    "จังหวัด " + (q.province||''),
+    "ที่จุดรับรถ " + (q.counter||'')
+  ];
+  speakArray(seq);
 }
 
-function clearForm() {
-  ['c1','c2','c3','n1','n2','n3','n4'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('c1').focus();
-}
+// ================= Core =================
+let roomId = document.getElementById('roomId').value.trim() || 'showroom-1';
+let roomRef = ref(db, 'queueRooms/' + roomId);
 
-// CALL QUEUE - animate letter by letter + announce
-function callQueue(id) {
-  const q = queues.find(x => x.id === id);
-  if (!q || q.status === 'done') return;
+// เปลี่ยน roomId ได้
+document.getElementById('roomId')?.addEventListener('change', (e)=>{
+  roomId = e.target.value.trim();
+  roomRef = ref(db, 'queueRooms/' + roomId);
+  subscribe(); // re-subscribe
+});
 
-  queues.forEach(x => { if (x.status === 'calling') x.status = 'waiting'; });
-  q.status = 'calling';
-  renderAll();
-  animateCalling(q);
-  announce(q);   // chime → speech → repeat
-}
+// เพิ่มคิว
+document.getElementById('btnAdd')?.addEventListener('click', async ()=>{
+  const plate = document.getElementById('plate').value.trim();
+  const province = document.getElementById('province').value.trim();
+  const counter = document.getElementById('counter').value.trim();
 
-function animateCalling(q) {
-  if (callingInterval) clearInterval(callingInterval);
-  const allChars = [...q.chars.filter(Boolean), ...q.nums.filter(Boolean)];
-  let i = -1;
+  // สร้างเลขคิว 2 หลักเรียงต่อ (นับจากจำนวนคิวเดิม)
+  const snap = await get(child(ref(db), `queueRooms/${roomId}/queues`));
+  const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+  const num = String(count + 1).padStart(2,'0');
 
-  const nc = document.getElementById('now-calling');
-  nc.innerHTML = buildCallingDisplay(q, -1);
+  const q = { number:num, plate, province, counter };
 
-  callingInterval = setInterval(() => {
-    i++;
-    if (i >= allChars.length) {
-      clearInterval(callingInterval);
-      nc.innerHTML = buildCallingDisplay(q, allChars.length);
-      return;
+  await set(ref(db, `queueRooms/${roomId}/queues/${num}`), q);
+  alert('เพิ่มคิว ' + num + ' เรียบร้อย');
+});
+
+// เรียกคิวถัดไป
+document.getElementById('btnCallNext')?.addEventListener('click', async ()=>{
+  const snap = await get(child(ref(db), `queueRooms/${roomId}/queues`));
+  if(!snap.exists()){ alert('ยังไม่มีคิว'); return; }
+
+  const queues = snap.val();
+  const keys = Object.keys(queues).sort(); // 01,02,03...
+  const curSnap = await get(child(ref(db), `queueRooms/${roomId}/currentQueue`));
+  let nextKey = keys[0];
+  if(curSnap.exists()){
+    const cur = curSnap.val();
+    const idx = keys.indexOf(cur.number);
+    nextKey = keys[idx+1] || null;
+  }
+  if(!nextKey){ alert('ไม่มีคิวถัดไป'); return; }
+
+  const q = queues[nextKey];
+  await update(ref(db, `queueRooms/${roomId}`), { currentQueue: q });
+
+  // เสียง (ให้ดังที่เครื่องกดคิว)
+  speakQueue(q);
+});
+
+// subscribe realtime (ทั้ง admin และ TV)
+let unsubscribe = null;
+function subscribe(){
+  if(unsubscribe){ /* RTDB ไม่มี off ใน modular แบบง่าย ๆ ในตัวอย่างนี้ */ }
+  onValue(roomRef, (snap)=>{
+    const data = snap.val();
+    if(!data) return;
+
+    const cur = data.currentQueue;
+
+    // admin UI
+    if(cur){
+      document.getElementById('curNum').innerText = cur.number || '--';
+      document.getElementById('curPlate').innerText = cur.plate || '-';
+      document.getElementById('curProv').innerText = cur.province || '-';
+      document.getElementById('curCounter').innerText = cur.counter || '-';
     }
-    nc.innerHTML = buildCallingDisplay(q, i);
-  }, 500);
-}
 
-function buildCallingDisplay(q, currentIdx) {
-  const allChars = [...q.chars.filter(Boolean), ...q.nums.filter(Boolean)];
-  const isLetter = (idx) => idx < q.chars.filter(Boolean).length;
-
-  let boxes = '';
-  allChars.forEach((ch, idx) => {
-    let cls = 'cp-char';
-    if (idx < currentIdx) cls += isLetter(idx) ? ' lit-letter' : ' lit-number';
-    if (idx === currentIdx) cls += ' current-lit ' + (isLetter(idx) ? 'letter' : 'number');
-    boxes += `<div class="${cls}">${idx <= currentIdx ? ch : ''}</div>`;
+    // TV UI
+    if(cur){
+      document.getElementById('tvNum').innerText = cur.number || '--';
+      document.getElementById('tvPlate').innerText = 'ทะเบียน ' + (cur.plate||'');
+      document.getElementById('tvProv').innerText = 'จังหวัด ' + (cur.province||'');
+      document.getElementById('tvCounter').innerText = 'จุดรับรถ ' + (cur.counter||'');
+    }
   });
-
-  // separator between letters and numbers
-  const lettersCount = q.chars.filter(Boolean).length;
-  const sep = lettersCount > 0 && allChars.length > lettersCount
-    ? `<div style="font-family:'IBM Plex Mono';font-size:clamp(32px,5vw,56px);color:var(--text-muted);padding:0 4px">–</div>` : '';
-
-  let finalBoxes = '';
-  allChars.forEach((ch, idx) => {
-    if (idx === lettersCount && lettersCount > 0) finalBoxes += sep;
-    let cls = 'cp-char';
-    if (idx < currentIdx) cls += isLetter(idx) ? ' lit-letter' : ' lit-number';
-    if (idx === currentIdx) cls += ' current-lit ' + (isLetter(idx) ? 'letter' : 'number');
-    finalBoxes += `<div class="${cls}">${idx <= currentIdx ? ch : ''}</div>`;
-  });
-
-  return `
-    <div class="calling-label">📢 กรุณารับรถ</div>
-    <div class="calling-queue-num active">คิวที่ ${padNum(q.num)}</div>
-    <div class="calling-plate-display">${finalBoxes}</div>
-    <div class="calling-zone-display">📍 จุดรับรถ : ${q.zone}</div>
-    <div class="calling-province">${q.province}</div>
-  `;
 }
+subscribe();
 
-function markDone(id) {
-  const q = queues.find(x => x.id === id);
-  if (!q) return;
-  q.status = 'done';
-  if (callingInterval) clearInterval(callingInterval);
-  document.getElementById('now-calling').innerHTML = `
-    <div class="calling-idle"><div class="idle-icon">✅</div><p>รับรถแล้ว — คิว ${padNum(q.num)}</p></div>`;
-  renderAll();
-}
-
-function deleteQueue(id) {
-  queues = queues.filter(x => x.id !== id);
-  renderAll();
-}
-
-function openEdit(id) {
-  const q = queues.find(x => x.id === id);
-  if (!q) return;
-  document.getElementById('edit-id').value = id;
-  document.getElementById('e-qnum').value = q.num;
-  document.getElementById('ec1').value = q.chars[0] || '';
-  document.getElementById('ec2').value = q.chars[1] || '';
-  document.getElementById('ec3').value = q.chars[2] || '';
-  document.getElementById('en1').value = q.nums[0] || '';
-  document.getElementById('en2').value = q.nums[1] || '';
-  document.getElementById('en3').value = q.nums[2] || '';
-  document.getElementById('en4').value = q.nums[3] || '';
-  document.getElementById('e-province').value = q.province;
-  document.getElementById('e-zone').value = q.zone;
-  document.getElementById('edit-modal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('edit-modal').classList.remove('open');
-}
-
-function saveEdit() {
-  const id = +document.getElementById('edit-id').value;
-  const q = queues.find(x => x.id === id);
-  if (!q) return;
-
-  const newNum = parseInt(document.getElementById('e-qnum').value, 10);
-  if (isNaN(newNum) || newNum < 1) { toast('ลำดับคิวไม่ถูกต้อง'); return; }
-  const duplicate = queues.find(x => x.id !== id && x.num === newNum);
-  if (duplicate) { toast(`ลำดับคิว ${padNum(newNum)} มีอยู่แล้ว`); return; }
-  q.num = newNum;
-
-  q.chars = [
-    document.getElementById('ec1').value.trim().toUpperCase(),
-    document.getElementById('ec2').value.trim().toUpperCase(),
-    document.getElementById('ec3').value.trim().toUpperCase()
-  ];
-  q.nums = [
-    document.getElementById('en1').value.trim(),
-    document.getElementById('en2').value.trim(),
-    document.getElementById('en3').value.trim(),
-    document.getElementById('en4').value.trim()
-  ];
-  q.province = document.getElementById('e-province').value;
-  q.zone = document.getElementById('e-zone').value;
-  closeModal();
-  renderAll();
-  if (q.status === 'calling') animateCalling(q);
-  toast('บันทึกการแก้ไขแล้ว');
-}
-
-function clearDone() {
-  queues = queues.filter(x => x.status !== 'done');
-  renderAll();
-  toast('ล้างคิวที่รับแล้วเรียบร้อย');
-}
-
-// RENDER
-function renderAll() {
-  renderQueueList();
-  renderUpNext();
-  document.getElementById('queue-count').textContent = queues.filter(x=>x.status!=='done').length;
-}
-
-function renderQueueList() {
-  const el = document.getElementById('queue-list');
-  if (queues.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>ยังไม่มีคิว<br>เพิ่มคิวด้านบนเพื่อเริ่มต้น</p></div>`;
-    return;
-  }
-
-  el.innerHTML = queues.map((q, idx) => `
-    <div class="queue-item ${q.status === 'calling' ? 'calling' : q.status === 'done' ? 'done' : ''}"
-         draggable="true"
-         ondragstart="dragStart(event,${idx})"
-         ondragover="dragOver(event)"
-         ondrop="dragDrop(event,${idx})"
-         ondragleave="dragLeave(event)">
-      <div class="queue-item-main" onclick="toggleExpand(this)">
-        <div class="status-dot"></div>
-        <div class="q-num">${padNum(q.num)}</div>
-        <div class="q-info">
-          <div class="q-plate">
-            ${q.chars.filter(Boolean).map(c=>`<span class="plate-letter">${c}</span>`).join('')}
-            <span style="color:var(--text-muted);margin:0 1px">–</span>
-            ${q.nums.filter(Boolean).map(n=>`<span class="plate-number">${n}</span>`).join('')}
-          </div>
-          <div class="q-meta">${q.province || '—'}</div>
-        </div>
-        <div class="q-zone">${q.zone}</div>
-      </div>
-      <div class="q-actions">
-        ${q.status !== 'done' ? `
-          <button class="btn btn-success btn-sm" onclick="callQueue(${q.id})">📢 เรียก</button>
-          ${q.status === 'calling' ? `<button class="btn btn-sm" style="border-color:#3a4460;color:#64a9ff" onclick="markDone(${q.id})">✅ รับแล้ว</button>` : ''}
-          <button class="btn btn-sm" onclick="openEdit(${q.id})">✏️ แก้ไข</button>
-        ` : ''}
-        <button class="btn btn-danger btn-sm" onclick="deleteQueue(${q.id})">🗑 ลบ</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderUpNext() {
-  const waiting = queues.filter(x => x.status === 'waiting');
-  const el = document.getElementById('up-next-list');
-  if (waiting.length === 0) {
-    el.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">ไม่มีคิวรอ</span>`;
-    return;
-  }
-  el.innerHTML = waiting.slice(0,8).map(q => `
-    <div class="up-next-item">
-      <span class="up-num">${padNum(q.num)}</span>
-      <span class="up-plate">${q.chars.filter(Boolean).map(c=>`<span class="l">${c}</span>`).join('')}<span class="l">–</span>${q.nums.filter(Boolean).map(n=>`<span class="n">${n}</span>`).join('')}</span>
-    </div>
-  `).join('');
-}
-
-// DRAG & DROP to reorder
-let dragIdx = null;
-function dragStart(e, idx) { dragIdx = idx; e.currentTarget.classList.add('dragging'); }
-function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function dragDrop(e, idx) {
-  e.currentTarget.classList.remove('drag-over');
-  if (dragIdx === null || dragIdx === idx) return;
-  const moved = queues.splice(dragIdx, 1)[0];
-  queues.splice(idx, 0, moved);
-  dragIdx = null;
-  renderAll();
-}
-
-// TOAST
-let toastTimer;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
-}
-
-// MODAL click outside
-document.getElementById('edit-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('edit-modal')) closeModal();
-});
-document.getElementById('zone-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('zone-modal')) closeZoneModal();
-});
-
-// INIT with sample data
-(function() {
-  renderZoneSelects();
-  queues = [
-    { id: 1001, num: 1, chars:['ก','ข','ค'], nums:['1','2','3','4'], province:'กรุงเทพมหานคร', zone:'ประตู A', status:'waiting' },
-    { id: 1002, num: 2, chars:['ฉ','ช',''],  nums:['5','6','7','8'], province:'นนทบุรี', zone:'ช่อง 2', status:'waiting' },
-  ];
-  nextNum = 3;
-  document.getElementById('next-num-input').value = nextNum;
-  renderAll();
-})();
 </script>
 </body>
 </html>
