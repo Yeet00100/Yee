@@ -647,7 +647,7 @@ function qNumThai(n){
   return(tens===1?'สิบ':thTens[tens])+(ones===1?'เอ็ด':ones===0?'':thDigits[ones]);
 }
 function buildAnnounceText(q){
-  const charWords=q.chars.filter(Boolean).map(ch=>charSpell(ch)+'ไ').join('  ');
+  const charWords=q.chars.filter(Boolean).map(ch=>charSpell(ch)).join('  ');
   const numWords=q.nums.filter(Boolean).map(numSpell).join('  ');
   return `เชิญ คิวที่ ${qNumThai(q.num)} ทะเบียน ${charWords} ${numWords} จังหวัด ${q.province} รับรถได้ที่ ${q.zone}`;
 }

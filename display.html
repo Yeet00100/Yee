@@ -432,7 +432,7 @@ function qNumThai(n){
 
 // แยกเป็น 3 ประโยค: เชิญ+คิว / ทะเบียน(ช้า) / จังหวัด+จุดรับ
 function announceInParts(q, onAllDone) {
-  const charWords = q.chars.filter(Boolean).map(ch=>charSpell(ch)+'ไ').join('   ');
+  const charWords = q.chars.filter(Boolean).map(ch=>charSpell(ch)).join('   ');
   const numWords  = q.nums.filter(Boolean).map(numSpell).join('   ');
   const part1 = `เชิญ คิวที่ ${qNumThai(q.num)}`;
   const part2 = `ทะเบียน ${charWords}   ${numWords}`;
