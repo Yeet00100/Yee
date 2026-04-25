@@ -131,10 +131,25 @@ onValue(ref(db,'queue_system'),snap=>{
   const d=snap.val();if(!d)return;
   const{queues=[],calling=null}=d;
   window._rQP(queues,calling);
-  if(calling&&calling!==lastCal){const q=queues.find(x=>x.id===calling);if(q&&window._aReady)window._trigger(q);lastCal=calling;}
-  else if(!calling){lastCal=null;}
-  if(calling){const q=queues.find(x=>x.id===calling);if(q)window._showStatic(q);}
-  else window._showIdle();
+
+  // show overlay if there are passed/calling queues
+  const hasPassed=queues.some(x=>x.status==='passed'||x.status==='calling');
+
+  if(calling&&calling!==lastCal){
+    const q=queues.find(x=>x.id===calling);
+    if(q&&window._aReady)window._trigger(q);
+    lastCal=calling;
+  } else if(!calling){lastCal=null;}
+
+  if(calling){
+    const q=queues.find(x=>x.id===calling);
+    if(q)window._showStatic(q);
+  } else if(hasPassed){
+    // แสดง overlay รายการรอ แต่ไม่แสดงคิวกำลังเรียก
+    window._showWaiting();
+  } else {
+    window._showIdle();
+  }
 });
 </script>
 <script>
@@ -210,6 +225,15 @@ function buildCH(q,ci){
     <div class="czone${active?' active':''}">📍 ${q.zone}</div>
     <div class="cprov">${q.province}</div>`;
 }
+window._showWaiting=function(){
+  if(calAnim){clearInterval(calAnim);calAnim=null;}
+  document.getElementById('idle-state').classList.add('hidden');
+  document.getElementById('qov').classList.add('visible');
+  document.getElementById('cpanel').innerHTML=`
+    <div class="clab">รายการรอเรียก</div>
+    <div style="font-size:clamp(40px,7vw,80px);opacity:.15;margin:16px 0">🚗</div>
+    <div style="font-size:16px;color:var(--text-muted);font-weight:500">รอพนักงานเรียกคิว</div>`;
+};
 window._showStatic=function(q){
   if(calAnim)return;
   document.getElementById('idle-state').classList.add('hidden');

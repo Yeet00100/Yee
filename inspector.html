@@ -31,6 +31,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);transition:all .2s}
 .card:hover{border-color:#c4b5fd}
 .card.c-i{border-color:var(--yellow);background:var(--yellow-bg)}
+.card.c-p{border-color:var(--green);background:var(--green-bg)}
+.card.c-f{border-color:var(--red);background:var(--red-bg)}
 .card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .card-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);min-width:42px}
 .card.c-i .card-num{color:#b45309}
@@ -166,7 +168,7 @@ function renderPage(){
   document.getElementById('st-p').textContent=qs.filter(x=>x.status==='passed').length;
   document.getElementById('st-f').textContent=qs.filter(x=>x.status==='failed').length;
 
-  const active=qs.filter(x=>['waiting','inspecting'].includes(x.status));
+  const active=qs.filter(x=>['waiting','inspecting','passed','failed'].includes(x.status));
   const el=document.getElementById('cards');
 
   if(!active.length){
@@ -176,11 +178,14 @@ function renderPage(){
 
   el.innerHTML=active.map(q=>{
     const isIns=q.status==='inspecting';
+    const isPassed=q.status==='passed';
+    const isFailed=q.status==='failed';
     const plateHTML=q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')
       +'<span class="pl" style="margin:0 3px">–</span>'
       +q.nums.filter(Boolean).map(n=>`<span class="pn">${n}</span>`).join('');
+    const cardCls=isIns?' c-i':isPassed?' c-p':isFailed?' c-f':'';
     return `
-      <div class="card${isIns?' c-i':''}">
+      <div class="card${cardCls}">
         <div class="card-top">
           <div class="card-num">${p2(q.num)}</div>
           <div>
@@ -193,11 +198,17 @@ function renderPage(){
           </div>
         </div>
         <div class="card-actions">
-          ${!isIns
+          ${q.status==='waiting'
             ? `<button class="btn btn-start" onclick="startInspect(${q.id})">🔍 เริ่มตรวจ</button>`
-            : `<button class="btn btn-pass" onclick="setResult(${q.id},'passed')">✅ ผ่าน</button>
+            : q.status==='inspecting'
+            ? `<button class="btn btn-pass" onclick="setResult(${q.id},'passed')">✅ ผ่าน</button>
                <button class="btn btn-fail" onclick="setResult(${q.id},'failed')">❌ ไม่ผ่าน</button>
                <button class="btn-note" onclick="toggleNote(${q.id})">📝 หมายเหตุ</button>`
+            : q.status==='passed'
+            ? `<span style="font-size:13px;font-weight:700;color:#16a34a;padding:8px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:8px;display:inline-flex;align-items:center;gap:6px">✅ ผ่านแล้ว — รอพนักงานเรียก</span>
+               <button class="btn-note" onclick="toggleNote(${q.id})" style="padding:8px 12px;font-size:13px">📝 แก้หมายเหตุ</button>`
+            : `<span style="font-size:13px;font-weight:700;color:var(--red);padding:8px 12px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:8px;display:inline-flex;align-items:center;gap:6px">❌ ไม่ผ่าน — แจ้งพนักงานแล้ว</span>
+               <button class="btn-note" onclick="toggleNote(${q.id})" style="padding:8px 12px;font-size:13px">📝 แก้หมายเหตุ</button>`
           }
         </div>
         <div class="note-wrap" id="nw-${q.id}">
