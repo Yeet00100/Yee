@@ -6,7 +6,7 @@
 <title>ห้องตรวจสภาพ</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f3fa;--surface:#ffffff;--surface2:#ede9f8;--border:#ddd6f3;--accent:#7c4dff;--accent2:#6535e8;--text:#1e1535;--text-dim:#5c4f80;--text-muted:#9b8ec4;--green:#22c55e;--green-bg:#f0fdf4;--green-bd:#bbf7d0;--red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;--yellow:#f59e0b;--yellow-bg:#fffbeb;--yellow-bd:#fde68a;--radius:12px;--shadow:0 1px 4px rgba(124,77,255,.08),0 4px 16px rgba(124,77,255,.06)}
+:root{--bg:#f5f3fa;--surface:#fff;--surface2:#ede9f8;--border:#ddd6f3;--accent:#7c4dff;--accent2:#6535e8;--text:#1e1535;--text-dim:#5c4f80;--text-muted:#9b8ec4;--green:#22c55e;--green-bg:#f0fdf4;--green-bd:#bbf7d0;--red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;--yellow:#f59e0b;--yellow-bg:#fffbeb;--yellow-bd:#fde68a;--radius:12px;--shadow:0 1px 4px rgba(124,77,255,.08),0 4px 16px rgba(124,77,255,.06)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 8px rgba(124,77,255,.08)}
@@ -19,7 +19,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .conn-text{font-size:11px;color:var(--text-dim);font-weight:600}
 .clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);letter-spacing:1px}
 .page{max-width:900px;margin:0 auto;padding:24px 20px}
-.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px}
 .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
 .stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
 .stat-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);line-height:1}
@@ -27,40 +26,39 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .stat.s-i{border-color:var(--yellow);background:var(--yellow-bg)}.stat.s-i .stat-num{color:#b45309}
 .stat.s-p{border-color:var(--green);background:var(--green-bg)}.stat.s-p .stat-num{color:#16a34a}
 .stat.s-f{border-color:var(--red);background:var(--red-bg)}.stat.s-f .stat-num{color:var(--red)}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px}
 .cards{display:flex;flex-direction:column;gap:10px}
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);transition:all .2s}
-.card:hover{border-color:#c4b5fd;box-shadow:0 4px 20px rgba(124,77,255,.1)}
+.card:hover{border-color:#c4b5fd}
 .card.c-i{border-color:var(--yellow);background:var(--yellow-bg)}
 .card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .card-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);min-width:42px}
 .card.c-i .card-num{color:#b45309}
-.card-plate{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;letter-spacing:3px;flex:1}
+.card-plate{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;letter-spacing:3px}
 .pl{color:var(--text)}.pn{color:var(--accent)}
-.card-info{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card-info{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:5px}
 .tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
 .tag-prov{background:var(--surface2);color:var(--text-dim)}
 .tag-zone{background:rgba(124,77,255,.1);color:var(--accent);border:1px solid rgba(124,77,255,.2)}
 .card-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{border:none;border-radius:9px;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:700;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-size:14px;padding:10px 18px}
+.btn{border:none;border-radius:9px;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:700;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-size:14px;padding:10px 20px}
 .btn-start{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff}
 .btn-start:hover{background:linear-gradient(135deg,#d97706,#f59e0b)}
 .btn-pass{background:linear-gradient(135deg,#22c55e,#4ade80);color:#fff}
 .btn-pass:hover{background:linear-gradient(135deg,#16a34a,#22c55e)}
 .btn-fail{background:linear-gradient(135deg,#ef4444,#f87171);color:#fff}
 .btn-fail:hover{background:linear-gradient(135deg,#dc2626,#ef4444)}
-.btn-sm{padding:6px 12px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);border-radius:8px;font-weight:600}
-.btn-sm:hover{background:var(--surface2);color:var(--accent)}
+.btn-note{padding:10px 14px;font-size:13px;background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);border-radius:9px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif}
+.btn-note:hover{background:var(--border)}
 .note-wrap{margin-top:12px;display:none}
 .note-wrap.show{display:block}
 .note-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;padding:9px 12px;outline:none;resize:none;min-height:60px}
 .note-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,77,255,.1)}
-.note-actions{display:flex;gap:7px;margin-top:8px}
+.card-note{font-size:12px;color:var(--text-dim);margin-top:8px;padding:6px 10px;background:rgba(124,77,255,.05);border-radius:6px;border-left:3px solid var(--accent)}
 .empty{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;line-height:2.5}
 .eicon{font-size:48px;opacity:.25;margin-bottom:10px}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--accent);color:#fff;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(124,77,255,.3)}
 .toast.show{transform:translateY(0);opacity:1}
-.note-badge{font-size:11px;background:var(--surface2);color:var(--text-dim);border-radius:6px;padding:2px 8px;font-style:italic;margin-top:4px}
-.card-note{font-size:12px;color:var(--text-dim);margin-top:6px;padding:6px 10px;background:rgba(124,77,255,.05);border-radius:6px;border-left:3px solid var(--accent)}
 </style>
 </head>
 <body>
@@ -73,97 +71,151 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 </header>
 <div class="page">
   <div class="stats-bar">
-    <div class="stat"><div class="stat-num" id="st-wait">0</div><div class="stat-label">⏳ รอตรวจ</div></div>
-    <div class="stat s-i"><div class="stat-num" id="st-ins">0</div><div class="stat-label">🔍 กำลังตรวจ</div></div>
-    <div class="stat s-p"><div class="stat-num" id="st-pass">0</div><div class="stat-label">✅ ผ่านแล้ว</div></div>
-    <div class="stat s-f"><div class="stat-num" id="st-fail">0</div><div class="stat-label">❌ ไม่ผ่าน</div></div>
+    <div class="stat"><div class="stat-num" id="st-w">0</div><div class="stat-label">⏳ รอตรวจ</div></div>
+    <div class="stat s-i"><div class="stat-num" id="st-i">0</div><div class="stat-label">🔍 กำลังตรวจ</div></div>
+    <div class="stat s-p"><div class="stat-num" id="st-p">0</div><div class="stat-label">✅ ผ่านแล้ว</div></div>
+    <div class="stat s-f"><div class="stat-num" id="st-f">0</div><div class="stat-label">❌ ไม่ผ่าน</div></div>
   </div>
   <div class="section-title">คิวรอตรวจสภาพ</div>
-  <div class="cards" id="cards"><div class="empty"><div class="eicon">🚗</div><p>ไม่มีคิวรอตรวจ<br>รอพนักงานเพิ่มคิวเข้ามา</p></div></div>
+  <div class="cards" id="cards">
+    <div class="empty"><div class="eicon">🚗</div><p>ไม่มีคิวรอตรวจ<br>รอพนักงานเพิ่มคิว</p></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getDatabase,ref,set,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-98245.firebaseapp.com",databaseURL:"https://create-98245-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"create-98245",storageBucket:"create-98245.firebasestorage.app",messagingSenderId:"490139130684",appId:"1:490139130684:web:a69bfbcb7e61dda952dc39"};
-const app=initializeApp(cfg),db=getDatabase(app);
-onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'ออฟไลน์';});
 
+const cfg={
+  apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",
+  authDomain:"create-98245.firebaseapp.com",
+  databaseURL:"https://create-98245-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"create-98245",
+  storageBucket:"create-98245.firebasestorage.app",
+  messagingSenderId:"490139130684",
+  appId:"1:490139130684:web:a69bfbcb7e61dda952dc39"
+};
+
+const app=initializeApp(cfg);
+const db=getDatabase(app);
+
+// connection status
+onValue(ref(db,'.info/connected'),s=>{
+  const on=s.val()===true;
+  document.getElementById('cdot').className='conn-dot'+(on?' online':'');
+  document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'ออฟไลน์';
+});
+
+// state ทั้งหมดอยู่ใน module นี้เลย ไม่ต้องพึ่ง window
 let state={queues:[],nextNum:1,zones:[],calling:null};
 
+function save(){
+  set(ref(db,'queue_system'),{
+    queues:state.queues,
+    nextNum:state.nextNum,
+    zones:state.zones,
+    calling:state.calling||null,
+    ts:Date.now()
+  });
+}
+
+// listen firebase
 onValue(ref(db,'queue_system'),snap=>{
-  const d=snap.val();if(!d)return;
-  state={queues:d.queues||[],nextNum:d.nextNum||1,zones:d.zones||[],calling:d.calling||null};
+  const d=snap.val();
+  if(!d)return;
+  state={
+    queues:Array.isArray(d.queues)?d.queues:Object.values(d.queues||{}),
+    nextNum:d.nextNum||1,
+    zones:d.zones||[],
+    calling:d.calling||null
+  };
   renderPage();
 });
 
-window._save=function(){
-  set(ref(db,'queue_system'),{queues:state.queues,nextNum:state.nextNum,zones:state.zones,calling:state.calling,ts:Date.now()});
+// actions — ต้องอยู่ใน module แล้ว expose ออก window
+window.startInspect=function(id){
+  const q=state.queues.find(x=>x.id===id);
+  if(!q)return;
+  q.status='inspecting';
+  save();
+  toast(`เริ่มตรวจ คิว ${p2(q.num)}`);
 };
-</script>
-<script>
-const p2=n=>String(n).padStart(2,'0');
-function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>el.classList.remove('show'),2500);}
-setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);
-document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false});
 
-function startInspect(id){
-  const q=window.state?.queues.find(x=>x.id===id);if(!q)return;
-  q.status='inspecting';window._save();toast(`เริ่มตรวจ คิว ${p2(q.num)}`);
-}
-function setResult(id,result){
-  const q=window.state?.queues.find(x=>x.id===id);if(!q)return;
+window.setResult=function(id,result){
+  const q=state.queues.find(x=>x.id===id);
+  if(!q)return;
   const noteEl=document.getElementById('note-'+id);
-  const note=noteEl?noteEl.value.trim():'';
-  q.status=result;q.note=note||'';
-  window._save();
+  q.status=result;
+  q.note=noteEl?noteEl.value.trim():'';
+  save();
   toast(result==='passed'?`✅ คิว ${p2(q.num)} ผ่านการตรวจ`:`❌ คิว ${p2(q.num)} ไม่ผ่าน`);
-}
-function toggleNote(id){
+};
+
+window.toggleNote=function(id){
   const w=document.getElementById('nw-'+id);
   if(w)w.classList.toggle('show');
-}
+};
+
+const p2=n=>String(n).padStart(2,'0');
 
 function renderPage(){
-  const qs=window.state?.queues||[];
-  document.getElementById('st-wait').textContent=qs.filter(x=>x.status==='waiting').length;
-  document.getElementById('st-ins').textContent=qs.filter(x=>x.status==='inspecting').length;
-  document.getElementById('st-pass').textContent=qs.filter(x=>x.status==='passed').length;
-  document.getElementById('st-fail').textContent=qs.filter(x=>x.status==='failed').length;
+  const qs=state.queues;
+  document.getElementById('st-w').textContent=qs.filter(x=>x.status==='waiting').length;
+  document.getElementById('st-i').textContent=qs.filter(x=>x.status==='inspecting').length;
+  document.getElementById('st-p').textContent=qs.filter(x=>x.status==='passed').length;
+  document.getElementById('st-f').textContent=qs.filter(x=>x.status==='failed').length;
 
   const active=qs.filter(x=>['waiting','inspecting'].includes(x.status));
   const el=document.getElementById('cards');
-  if(!active.length){el.innerHTML=`<div class="empty"><div class="eicon">🚗</div><p>ไม่มีคิวรอตรวจ<br>รอพนักงานเพิ่มคิวเข้ามา</p></div>`;return;}
+
+  if(!active.length){
+    el.innerHTML=`<div class="empty"><div class="eicon">🚗</div><p>ไม่มีคิวรอตรวจ<br>รอพนักงานเพิ่มคิว</p></div>`;
+    return;
+  }
+
   el.innerHTML=active.map(q=>{
     const isIns=q.status==='inspecting';
-    const plateHTML=q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')+'<span class="pl" style="margin:0 3px">–</span>'+q.nums.filter(Boolean).map(n=>`<span class="pn">${n}</span>`).join('');
-    return `<div class="card${isIns?' c-i':''}">
-      <div class="card-top">
-        <div class="card-num">${p2(q.num)}</div>
-        <div>
-          <div class="card-plate">${plateHTML}</div>
-          <div class="card-info" style="margin-top:5px">
-            <span class="tag tag-prov">${q.province}</span>
-            <span class="tag tag-zone">${q.zone}</span>
+    const plateHTML=q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')
+      +'<span class="pl" style="margin:0 3px">–</span>'
+      +q.nums.filter(Boolean).map(n=>`<span class="pn">${n}</span>`).join('');
+    return `
+      <div class="card${isIns?' c-i':''}">
+        <div class="card-top">
+          <div class="card-num">${p2(q.num)}</div>
+          <div>
+            <div class="card-plate">${plateHTML}</div>
+            <div class="card-info">
+              <span class="tag tag-prov">${q.province}</span>
+              <span class="tag tag-zone">${q.zone}</span>
+            </div>
+            ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
           </div>
-          ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
         </div>
-      </div>
-      <div class="card-actions">
-        ${!isIns?`<button class="btn btn-start" onclick="startInspect(${q.id})">🔍 เริ่มตรวจ</button>`:`
-          <button class="btn btn-pass" onclick="setResult(${q.id},'passed')">✅ ผ่าน</button>
-          <button class="btn btn-fail" onclick="setResult(${q.id},'failed')">❌ ไม่ผ่าน</button>
-          <button class="btn btn-sm" onclick="toggleNote(${q.id})">📝 หมายเหตุ</button>`}
-      </div>
-      <div class="note-wrap${isIns?'':''}" id="nw-${q.id}">
-        <textarea class="note-input" id="note-${q.id}" placeholder="ระบุเหตุผล เช่น ไฟเบรกเสีย, ยางผิดมาตรฐาน..."></textarea>
-      </div>
-    </div>`;
+        <div class="card-actions">
+          ${!isIns
+            ? `<button class="btn btn-start" onclick="startInspect(${q.id})">🔍 เริ่มตรวจ</button>`
+            : `<button class="btn btn-pass" onclick="setResult(${q.id},'passed')">✅ ผ่าน</button>
+               <button class="btn btn-fail" onclick="setResult(${q.id},'failed')">❌ ไม่ผ่าน</button>
+               <button class="btn-note" onclick="toggleNote(${q.id})">📝 หมายเหตุ</button>`
+          }
+        </div>
+        <div class="note-wrap" id="nw-${q.id}">
+          <textarea class="note-input" id="note-${q.id}" placeholder="ระบุเหตุผล เช่น ไฟเบรกเสีย, ยางผิดมาตรฐาน..."></textarea>
+        </div>
+      </div>`;
   }).join('');
 }
-// expose state for module
-Object.defineProperty(window,'state',{get:()=>window._state||{queues:[]},set:v=>window._state=v});
+
+// clock
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);
+document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false});
+
+// toast
+let tt;
+window.toast=function(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);};
+function toast(m){window.toast(m);}
+
 </script>
 </body>
 </html>
