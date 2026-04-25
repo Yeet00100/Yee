@@ -131,6 +131,75 @@
     border-radius:10px;padding:14px 40px;font-size:18px;font-weight:700;
     font-family:'Sarabun',sans-serif;cursor:pointer;
   }
+
+  /* YOUTUBE SETUP */
+  #yt-wrap{
+    position:fixed;inset:0;z-index:0;background:#000;
+    transition:opacity 0.4s;
+  }
+  #yt-wrap.dimmed{ opacity:0.25; }
+  #yt-frame{width:100%;height:100%;border:none;}
+
+  /* QUEUE OVERLAY — shows on top of YouTube when calling */
+  #queue-overlay{
+    position:fixed;inset:0;z-index:10;
+    display:flex;pointer-events:none;
+    opacity:0;transition:opacity 0.35s;
+  }
+  #queue-overlay.visible{ opacity:1; }
+
+  /* dark backdrop behind queue panel only */
+  #queue-overlay::before{
+    content:'';position:absolute;inset:0;
+    background:rgba(5,8,18,0.72);
+  }
+
+  .ov-calling{
+    position:relative;flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:40px;
+  }
+  .ov-calling::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 50% 45%,rgba(45,110,240,0.18) 0%,transparent 65%);
+    pointer-events:none;
+  }
+  .ov-qlist{
+    position:relative;width:300px;background:rgba(19,23,32,0.95);
+    border-left:1px solid rgba(255,255,255,0.08);
+    display:flex;flex-direction:column;flex-shrink:0;
+  }
+  .ov-qlist-hd{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.08);
+    font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);}
+  .ov-qlist-body{flex:1;overflow-y:auto;padding:8px;}
+
+  /* YouTube URL input bar */
+  #yt-bar{
+    position:fixed;bottom:0;left:0;right:0;z-index:20;
+    background:rgba(10,13,20,0.92);border-top:1px solid rgba(255,255,255,0.08);
+    padding:10px 20px;display:flex;gap:10px;align-items:center;
+    transform:translateY(100%);transition:transform 0.3s;
+  }
+  #yt-bar.show{ transform:translateY(0); }
+  #yt-url-input{
+    flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+    border-radius:8px;color:#fff;font-size:14px;padding:8px 12px;outline:none;
+    font-family:'Sarabun',sans-serif;
+  }
+  .yt-btn{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
+    padding:8px 16px;font-size:13px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;
+  }
+  .yt-btn.sec{background:rgba(255,255,255,0.1);}
+
+  /* gear button to open yt-bar */
+  #yt-gear{
+    position:fixed;bottom:14px;right:14px;z-index:15;
+    background:rgba(10,13,20,0.7);border:1px solid rgba(255,255,255,0.12);
+    border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-muted);transition:opacity 0.3s;opacity:0.4;
+  }
+  #yt-gear:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -143,7 +212,33 @@
   <button class="unlock-btn">▶ เริ่มใช้งาน</button>
 </div>
 
-<div class="topbar">
+<!-- YouTube background -->
+<div id="yt-wrap">
+  <iframe id="yt-frame"
+    src="about:blank"
+    allow="autoplay; encrypted-media"
+    allowfullscreen>
+  </iframe>
+</div>
+
+<!-- Queue overlay (hidden until called) -->
+<div id="queue-overlay">
+  <div class="ov-calling" id="calling-panel">
+    <div class="idle-state">
+      <div class="idle-icon">🚗</div>
+      <div class="idle-text">รอการเรียกคิว...</div>
+    </div>
+  </div>
+  <div class="ov-qlist">
+    <div class="ov-qlist-hd">คิวรอเรียก</div>
+    <div class="ov-qlist-body" id="qp-list">
+      <div style="text-align:center;padding:30px 0;font-size:13px;color:var(--text-muted)">ไม่มีคิว</div>
+    </div>
+  </div>
+</div>
+
+<!-- Top bar (always visible) -->
+<div class="topbar" style="position:fixed;top:0;left:0;right:0;z-index:11;background:rgba(19,23,32,0.85);backdrop-filter:blur(8px);">
   <div class="topbar-logo">
     <div class="logo-icon">📺</div>
     ระบบแสดงคิวรับรถ
@@ -157,25 +252,16 @@
   </div>
 </div>
 
-<div class="main">
-  <!-- CALLING PANEL -->
-  <div class="calling-panel" id="calling-panel">
-    <div class="idle-state">
-      <div class="idle-icon">🚗</div>
-      <div class="idle-text">รอการเรียกคิว...</div>
-    </div>
-  </div>
-
-  <!-- QUEUE LIST PANEL -->
-  <div class="queue-panel">
-    <div class="qp-header">
-      <div class="qp-title">คิวรอเรียก</div>
-    </div>
-    <div class="qp-list" id="qp-list">
-      <div style="text-align:center;padding:40px 0;font-size:13px;color:var(--text-muted)">ไม่มีคิว</div>
-    </div>
-  </div>
+<!-- YouTube URL bar -->
+<div id="yt-bar">
+  <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">🎬 YouTube URL</span>
+  <input type="text" id="yt-url-input" placeholder="วาง YouTube URL ที่นี่ เช่น https://www.youtube.com/watch?v=xxxxx">
+  <button class="yt-btn" onclick="loadYT()">โหลด</button>
+  <button class="yt-btn sec" onclick="toggleYTBar()">ปิด</button>
 </div>
+
+<!-- Gear button -->
+<div id="yt-gear" onclick="toggleYTBar()" title="ตั้งค่า YouTube">⚙️</div>
 
 <!-- Firebase -->
 <script type="module">
@@ -252,6 +338,41 @@ function unlockAndStart() {
 function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false}); }
 setInterval(updateClock, 1000); updateClock();
 
+// ── YouTube control ──
+let ytPlayer = null;
+let ytLoaded = false;
+
+function toggleYTBar() {
+  document.getElementById('yt-bar').classList.toggle('show');
+}
+
+function extractVideoId(url) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function loadYT() {
+  const url = document.getElementById('yt-url-input').value.trim();
+  const vid = extractVideoId(url);
+  if (!vid) { alert('URL ไม่ถูกต้อง กรุณาวาง YouTube URL ให้ถูกต้อง'); return; }
+  // Load YouTube IFrame API
+  const frame = document.getElementById('yt-frame');
+  frame.src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&enablejsapi=1&loop=1&playlist=${vid}&controls=1`;
+  ytLoaded = true;
+  document.getElementById('yt-bar').classList.remove('show');
+}
+
+function pauseYT() {
+  // postMessage to pause iframe
+  const frame = document.getElementById('yt-frame');
+  frame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+}
+
+function playYT() {
+  const frame = document.getElementById('yt-frame');
+  frame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+}
+
 // ── Chime ──
 function playChime(onDone) {
   if (!audioCtx) { onDone&&onDone(); return; }
@@ -279,7 +400,8 @@ function loadVoices() {
 }
 if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
 
-function speakText(text, onDone) {
+// speakText with custom rate support
+function speakText(text, onDone, rate=0.82) {
   if (!synth) { onDone&&onDone(); return; }
   synth.cancel();
   setTimeout(() => {
@@ -287,14 +409,16 @@ function speakText(text, onDone) {
     if (!voicesLoaded) loadVoices();
     if (thVoice) utt.voice = thVoice;
     utt.lang = thVoice ? thVoice.lang : 'th-TH';
-    utt.rate = 0.88; utt.pitch = 1.2; utt.volume = 1;
-    utt.onend = () => { onDone&&onDone(); };
+    utt.rate = rate;
+    utt.pitch = 1.2;
+    utt.volume = 1;
+    utt.onend  = () => { onDone&&onDone(); };
     utt.onerror = () => { onDone&&onDone(); };
     synth.speak(utt);
   }, 80);
 }
 
-// ── TTS text builder ──
+// ── TTS text builder — แยกส่วนทะเบียนอ่านช้า ส่วนอื่นปกติ ──
 const thDigits=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
 const thCharName={'ก':'กอ','ข':'ขอ','ค':'คอ','ง':'งอ','จ':'จอ','ฉ':'ฉอ','ช':'ชอ','ซ':'ซอ','ญ':'ญอ','ด':'ดอ','ต':'ตอ','ถ':'ถอ','ท':'ทอ','น':'นอ','บ':'บอ','ป':'ปอ','ผ':'ผอ','ฝ':'ฝอ','พ':'พอ','ฟ':'ฟอ','ภ':'ภอ','ม':'มอ','ย':'ยอ','ร':'รอ','ล':'ลอ','ว':'วอ','ส':'สอ','ห':'หอ','อ':'ออ','ฮ':'ฮอ','ฆ':'ฆอ','ณ':'ณอ','ธ':'ธอ','ฑ':'ฑอ','ฒ':'ฒอ','ศ':'ศอ','ษ':'ษอ','ฌ':'ฌอ','ฏ':'ฏอ','ฐ':'ฐอ','ฃ':'ฃอ','ฅ':'ฅอ'};
 function charSpell(ch){return thCharName[ch]||ch;}
@@ -305,24 +429,66 @@ function qNumThai(n){
   const tens=Math.floor(n/10),ones=n%10;
   return(tens===1?'สิบ':thTens[tens])+(ones===1?'เอ็ด':ones===0?'':thDigits[ones]);
 }
-function buildAnnounceText(q){
-  const charWords=q.chars.filter(Boolean).map(ch=>charSpell(ch)+'ไ').join('  ');
-  const numWords=q.nums.filter(Boolean).map(numSpell).join('  ');
-  return `เชิญ คิวที่ ${qNumThai(q.num)} ทะเบียน ${charWords} ${numWords} จังหวัด ${q.province} รับรถได้ที่ ${q.zone}`;
+
+// แยกเป็น 3 ประโยค: เชิญ+คิว / ทะเบียน(ช้า) / จังหวัด+จุดรับ
+function announceInParts(q, onAllDone) {
+  const charWords = q.chars.filter(Boolean).map(ch=>charSpell(ch)+'ไ').join('   ');
+  const numWords  = q.nums.filter(Boolean).map(numSpell).join('   ');
+  const part1 = `เชิญ คิวที่ ${qNumThai(q.num)}`;
+  const part2 = `ทะเบียน ${charWords}   ${numWords}`;
+  const part3 = `จังหวัด ${q.province}   รับรถได้ที่ ${q.zone}`;
+
+  // part1 ปกติ → part2 ช้า (0.6) → part3 ปกติ → done
+  speakText(part1, () => {
+    setTimeout(() => {
+      speakText(part2, () => {
+        setTimeout(() => {
+          speakText(part3, () => {
+            onAllDone && onAllDone();
+          }, 0.82);
+        }, 300);
+      }, 0.58); // ← ช้ามากตรงทะเบียน
+    }, 200);
+  }, 0.82);
 }
 
-// ── Full trigger: chime → speak → repeat ──
+// ── Full trigger: pause YT → chime → speak → repeat → resume YT ──
 let callingAnim = null;
 window._triggerCall = function(q) {
-  const text = buildAnnounceText(q);
-  // Flash background
+  // Dim + pause YouTube
+  document.getElementById('yt-wrap').classList.add('dimmed');
+  pauseYT();
+
+  // Show overlay
+  document.getElementById('queue-overlay').classList.add('visible');
+
+  // Flash
   const panel = document.getElementById('calling-panel');
   panel.classList.remove('flash');
   void panel.offsetWidth;
   panel.classList.add('flash');
-  // Animate plate + announce
+
+  // Animate plate
   animatePlate(q);
-  playChime(() => speakText(text, () => setTimeout(() => playChime(() => speakText(text)), 800)));
+
+  // Chime → announce × 2 → resume YT
+  playChime(() => {
+    announceInParts(q, () => {
+      setTimeout(() => {
+        // repeat once
+        playChime(() => {
+          announceInParts(q, () => {
+            // After done — resume YouTube, hide overlay after 4s
+            setTimeout(() => {
+              document.getElementById('yt-wrap').classList.remove('dimmed');
+              playYT();
+              // keep overlay showing current queue info (don't hide — Firebase will update)
+            }, 1000);
+          });
+        });
+      }, 800);
+    });
+  });
 };
 
 // ── Animate plate letter by letter ──
@@ -334,9 +500,9 @@ function animatePlate(q) {
   panel.innerHTML = buildCallingHTML(q, -1);
   callingAnim = setInterval(() => {
     i++;
-    if (i >= allChars.length) { clearInterval(callingAnim); panel.innerHTML = buildCallingHTML(q, allChars.length); return; }
+    if (i >= allChars.length) { clearInterval(callingAnim); callingAnim = null; panel.innerHTML = buildCallingHTML(q, allChars.length); return; }
     panel.innerHTML = buildCallingHTML(q, i);
-  }, 500);
+  }, 600); // ช้าลง 500→600ms
 }
 
 function buildCallingHTML(q, curIdx) {
@@ -362,27 +528,26 @@ function buildCallingHTML(q, curIdx) {
 }
 
 window._showCallingStatic = function(q) {
-  if (callingAnim) return; // don't override animation
+  if (callingAnim) return;
+  document.getElementById('queue-overlay').classList.add('visible');
   const panel = document.getElementById('calling-panel');
   if (!panel.querySelector('.calling-num')) panel.innerHTML = buildCallingHTML(q, 99);
 };
 
 window._showIdle = function() {
   if (callingAnim) { clearInterval(callingAnim); callingAnim = null; }
-  document.getElementById('calling-panel').innerHTML = `
-    <div class="idle-state">
-      <div class="idle-icon">🚗</div>
-      <div class="idle-text">รอการเรียกคิว...</div>
-    </div>`;
+  document.getElementById('queue-overlay').classList.remove('visible');
+  document.getElementById('yt-wrap').classList.remove('dimmed');
+  playYT();
 };
 
 // ── Queue panel ──
 function padNum(n) { return String(n).padStart(2,'0'); }
 window._renderQueuePanel = function(queues, callingId) {
-  const waiting = queues.filter(x => x.status === 'waiting');
   const el = document.getElementById('qp-list');
-  if (!waiting.length) { el.innerHTML = `<div style="text-align:center;padding:40px 0;font-size:13px;color:var(--text-muted)">ไม่มีคิวรอ</div>`; return; }
-  el.innerHTML = queues.filter(x => x.status !== 'done').map(q => `
+  const active = queues.filter(x => x.status !== 'done');
+  if (!active.length) { el.innerHTML = `<div style="text-align:center;padding:30px 0;font-size:13px;color:var(--text-muted)">ไม่มีคิวรอ</div>`; return; }
+  el.innerHTML = active.map(q => `
     <div class="qp-item ${q.id === callingId ? 'active' : ''}">
       <div class="qp-num">${padNum(q.num)}</div>
       <div class="qp-plate">
