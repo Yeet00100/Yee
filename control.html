@@ -212,6 +212,26 @@ const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-9
 const app=initializeApp(cfg),db=getDatabase(app);
 onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'ออฟไลน์';});
 window._push=()=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,ts:Date.now()});
+
+// รับข้อมูลจาก Firebase (เมื่อช่างอัปเดตสถานะ)
+let _ignoreNext=false;
+onValue(ref(db,'queue_system'),snap=>{
+  if(_ignoreNext){_ignoreNext=false;return;}
+  const d=snap.val();if(!d)return;
+  // merge สถานะจาก firebase เข้า queues ที่มีอยู่
+  const fbQueues=Array.isArray(d.queues)?d.queues:Object.values(d.queues||{});
+  fbQueues.forEach(fq=>{
+    const local=window._q.find(x=>x.id===fq.id);
+    if(local&&local.status!==fq.status){
+      local.status=fq.status;
+      local.note=fq.note||'';
+      // แจ้งเตือนพนักงานเมื่อช่างอัปเดต
+      if(fq.status==='passed') window._notify(`✅ คิว ${String(fq.num).padStart(2,'0')} ผ่านการตรวจแล้ว — กดเรียกได้เลย`,'green');
+      if(fq.status==='failed') window._notify(`❌ คิว ${String(fq.num).padStart(2,'0')} ไม่ผ่านการตรวจ — ${fq.note||'ไม่มีหมายเหตุ'}`,'red');
+    }
+  });
+  window._renderAll();
+});
 </script>
 <script>
 let queues=[],nextNum=1,calInt=null,sRate=0.82,sVol=1,calId=null;
@@ -220,8 +240,20 @@ Object.defineProperty(window,'_q',{get:()=>queues});
 Object.defineProperty(window,'_nn',{get:()=>nextNum});
 Object.defineProperty(window,'_z',{get:()=>zones});
 Object.defineProperty(window,'_cid',{get:()=>calId});
-const push=()=>{if(window._push)window._push();};
+const push=()=>{
+  _ignoreNext=true;
+  if(window._push)window._push();
+};
 const p2=n=>String(n).padStart(2,'0');
+window._renderAll=()=>renderAll();
+window._notify=function(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=type==='red'?'#ef4444':type==='green'?'#22c55e':'var(--accent)';
+  el.classList.add('show');
+  clearTimeout(window._tt2);
+  window._tt2=setTimeout(()=>{el.classList.remove('show');el.style.background='';},4000);
+};
 function updateNextNum(v){const n=parseInt(v);if(!isNaN(n)&&n>=1)nextNum=n;document.getElementById('nni').value=nextNum;}
 function updateSpeed(v){sRate=parseFloat(v);document.getElementById('sv').textContent='×'+sRate.toFixed(1);}
 function updateVolume(v){sVol=parseFloat(v);document.getElementById('vv').textContent=Math.round(sVol*100)+'%';}
@@ -258,7 +290,7 @@ function callQueue(id){
 function markDone(id){
   const q=queues.find(x=>x.id===id);if(!q)return;
   q.status='done';calId=null;if(calInt)clearInterval(calInt);
-  document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">✅</div><p>รับรถแล้ว — คิว ${p2(q.num)}</p></div>`;
+  document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">✅</div><p>เรียกรับรถเรียบร้อย — คิว ${p2(q.num)}</p></div>`;
   renderAll();push();
 }
 function delQ(id){queues=queues.filter(x=>x.id!==id);renderAll();push();}
@@ -285,7 +317,18 @@ function saveEdit(){
 }
 
 // STATUS
-function sb(s){const m={waiting:['sb-w','⏳ รอตรวจ'],inspecting:['sb-i','🔍 ตรวจอยู่'],passed:['sb-p','✅ ผ่านแล้ว'],failed:['sb-f','❌ ไม่ผ่าน'],calling:['sb-c','📢 กำลังเรียก'],done:['sb-d','✔ เสร็จ']};const[c,l]=m[s]||['sb-w','—'];return `<span class="sb ${c}">${l}</span>`;}
+function sb(s){
+  const m={
+    waiting:['sb-w','⏳ รอตรวจ'],
+    inspecting:['sb-i','🔍 ตรวจอยู่'],
+    passed:['sb-p','✅ ผ่านแล้ว — รอเรียก'],
+    failed:['sb-f','❌ ไม่ผ่านการตรวจ'],
+    calling:['sb-c','📢 กำลังเรียก'],
+    done:['sb-d','✔ เรียบร้อยแล้ว']
+  };
+  const[c,l]=m[s]||['sb-w','—'];
+  return `<span class="sb ${c}">${l}</span>`;
+}
 
 // RENDER
 function renderAll(){rQL();rUN();document.getElementById('qcount').textContent=queues.filter(x=>x.status!=='done').length;}
@@ -299,14 +342,16 @@ function rQL(){
         <div class="qinfo">
           <div class="qplate">${q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')}<span style="color:var(--text-muted);margin:0 2px">–</span>${q.nums.filter(Boolean).map(n=>`<span class="pn2">${n}</span>`).join('')}</div>
           <div class="qmeta">${sb(q.status)}<span>${q.province||'—'}</span></div>
+          ${q.note&&q.status==='failed'?`<div style="font-size:11px;color:var(--red);margin-top:3px;padding:3px 7px;background:var(--red-bg);border-radius:5px;border-left:2px solid var(--red)">📝 ${q.note}</div>`:''}
         </div>
         <div class="qzone">${q.zone}</div>
       </div>
       <div class="qacts">
         ${q.status==='passed'?`<button class="btn btn-call" onclick="callQueue(${q.id})">📢 เรียกรับรถ</button>`:''}
         ${q.status==='calling'?`<button class="btn btn-done" onclick="markDone(${q.id})">✅ รับแล้ว</button>`:''}
-        ${q.status!=='done'?`<button class="btn btn-edit" onclick="openEdit(${q.id})">✏️</button>`:''}
-        <button class="btn btn-del" onclick="delQ(${q.id})">🗑</button>
+        ${q.status==='failed'?`<button class="btn btn-del" onclick="delQ(${q.id})" style="font-size:11px;padding:4px 9px">🗑 ลบ</button>`:''}
+        ${!['done','failed'].includes(q.status)?`<button class="btn btn-edit" onclick="openEdit(${q.id})">✏️</button>`:''}
+        ${q.status!=='done'&&q.status!=='failed'?`<button class="btn btn-del" onclick="delQ(${q.id})">🗑</button>`:''}
       </div>
     </div>`).join('');
 }
