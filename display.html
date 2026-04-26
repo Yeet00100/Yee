@@ -172,9 +172,9 @@ function unlockStart(){
     actx=new(window.AudioContext||window.webkitAudioContext)();
     if(actx.state==='suspended')actx.resume();
     window._aReady=true;
+    preloadCommon(); // โหลดไฟล์บ่อยไว้ก่อน
   }catch(e){}
   document.getElementById('uov').classList.add('hidden');
-  // มีคิวรอเล่นอยู่ให้เล่นทันที
   if(window._pendingQueue&&!window._isPlaying){
     window._trigger(window._pendingQueue,()=>{});
     window._pendingQueue=null;
@@ -204,35 +204,59 @@ function playChime(cb){
 const syn=window.speechSynthesis;let thV=null,vL=false;
 function lV(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
 if(syn){lV();syn.onvoiceschanged=lV;}
-// ── MP3 AUDIO SYSTEM ──
+// ── MP3 AUDIO SYSTEM — ใช้ Web Audio API Buffer เพื่อเล่นต่อเนื่องไม่มีดีเลย์ ──
 const AUDIO_BASE = 'audio/';
-let currentAudio = null; // track current audio to stop if needed
+const audioCache = {}; // cache AudioBuffer ไว้ในหน่วยความจำ
+let currentSource = null;
 
 function stopAllAudio() {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-    currentAudio = null;
+  try { if(currentSource){ currentSource.stop(); currentSource=null; } } catch(e){}
+}
+
+// โหลดไฟล์ MP3 เป็น AudioBuffer แล้วเก็บ cache
+async function loadBuffer(file) {
+  if (audioCache[file]) return audioCache[file];
+  try {
+    const res = await fetch(AUDIO_BASE + file);
+    const arr = await res.arrayBuffer();
+    const buf = await actx.decodeAudioData(arr);
+    audioCache[file] = buf;
+    return buf;
+  } catch(e) {
+    console.warn('โหลดไม่ได้:', file);
+    return null;
   }
 }
 
-function playMP3(file, cb) {
-  const audio = new Audio(AUDIO_BASE + file);
-  audio.playbackRate = 1.15;
-  currentAudio = audio;
-  audio.onended = () => { currentAudio = null; cb && cb(); };
-  audio.onerror = () => { currentAudio = null; cb && cb(); };
-  const p = audio.play();
-  if (p && p.catch) p.catch(() => { cb && cb(); });
+// Preload ไฟล์ที่จะใช้บ่อย
+async function preloadCommon() {
+  if (!actx) return;
+  const common = ['invite.mp3','queue_at.mp3','plate.mp3','province.mp3','pickup.mp3'];
+  await Promise.all(common.map(f => loadBuffer(f)));
 }
 
-// เล่นหลายไฟล์ต่อกัน — gap สั้นลงเหลือ 50ms
-function playSequence(files, cb) {
-  if (!files.length) { cb && cb(); return; }
-  const [first, ...rest] = files;
-  playMP3(first, () => {
-    setTimeout(() => playSequence(rest, cb), 50);
-  });
+// เล่น AudioBuffer ทีละตัวต่อกันไม่มี gap
+async function playSequence(files, cb) {
+  if (!actx) { cb&&cb(); return; }
+  if (actx.state === 'suspended') await actx.resume();
+
+  for (const file of files) {
+    const buf = await loadBuffer(file);
+    if (!buf) continue;
+    await new Promise(resolve => {
+      const src = actx.createBufferSource();
+      src.buffer = buf;
+      src.playbackRate.value = 1.15;
+      src.connect(actx.destination);
+      currentSource = src;
+      src.onended = resolve;
+      src.start(0);
+    });
+    // gap เล็กมาก 30ms ระหว่างคำ
+    await new Promise(r => setTimeout(r, 30));
+  }
+  currentSource = null;
+  cb && cb();
 }
 
 // สร้างลำดับไฟล์เสียงสำหรับประกาศคิว
@@ -263,9 +287,8 @@ function buildAnnounceFiles(q) {
 const p2=n=>String(n).padStart(2,'0');
 let calAnim=null;
 
-let isPlaying=false;
 window._trigger=function(q, doneCb){
-  if(window._isPlaying)return; // ป้องกันซ้อน 100%
+  if(window._isPlaying)return;
   window._isPlaying=true;
   stopAllAudio();
 
@@ -275,20 +298,24 @@ window._trigger=function(q, doneCb){
   animPlate(q);
 
   const announceFiles = buildAnnounceFiles(q);
-  playChime(()=>{
-    playSequence(announceFiles,()=>{
-      setTimeout(()=>{
-        playChime(()=>{
-          playSequence(announceFiles,()=>{
-            window._isPlaying=false;
-            doneCb&&doneCb();
-            setTimeout(()=>{
-              document.getElementById('yt-wrap').classList.remove('dimmed');
-              playYT();
-            },1000);
+
+  // โหลดไฟล์ทั้งหมดที่ต้องการก่อน แล้วค่อยเล่น
+  Promise.all(announceFiles.map(f => loadBuffer(f))).then(() => {
+    playChime(()=>{
+      playSequence(announceFiles,()=>{
+        setTimeout(()=>{
+          playChime(()=>{
+            playSequence(announceFiles,()=>{
+              window._isPlaying=false;
+              doneCb&&doneCb();
+              setTimeout(()=>{
+                document.getElementById('yt-wrap').classList.remove('dimmed');
+                playYT();
+              },800);
+            });
           });
-        });
-      },400);
+        },300);
+      });
     });
   });
 };
