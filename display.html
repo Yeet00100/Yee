@@ -182,27 +182,77 @@ function playChime(cb){
 const syn=window.speechSynthesis;let thV=null,vL=false;
 function lV(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
 if(syn){lV();syn.onvoiceschanged=lV;}
-function spk(text,cb,rate=0.82){
-  if(!syn){cb&&cb();return;}syn.cancel();
-  setTimeout(()=>{const u=new SpeechSynthesisUtterance(text);if(!vL)lV();if(thV)u.voice=thV;u.lang=thV?thV.lang:'th-TH';u.rate=rate;u.pitch=1.2;u.volume=1;u.onend=()=>{cb&&cb();};u.onerror=()=>{cb&&cb();};syn.speak(u);},80);
+// ── MP3 AUDIO SYSTEM — เล่นไฟล์เสียงจาก GitHub แทน Web Speech API ──
+const AUDIO_BASE = 'audio/'; // โฟลเดอร์ audio ใน GitHub
+
+// เล่นไฟล์ MP3 แล้ว callback เมื่อเสร็จ
+function playMP3(file, cb) {
+  const audio = new Audio(AUDIO_BASE + file);
+  audio.onended = () => { cb && cb(); };
+  audio.onerror = () => { console.warn('ไม่พบไฟล์:', file); cb && cb(); };
+  audio.play().catch(() => { cb && cb(); });
 }
-const thD=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
-const thC={'ก':'กอ','ข':'ขอ','ค':'คอ','ง':'งอ','จ':'จอ','ฉ':'ฉอ','ช':'ชอ','ซ':'ซอ','ญ':'ญอ','ด':'ดอ','ต':'ตอ','ถ':'ถอ','ท':'ทอ','น':'นอ','บ':'บอ','ป':'ปอ','ผ':'ผอ','ฝ':'ฝอ','พ':'พอ','ฟ':'ฟอ','ภ':'ภอ','ม':'มอ','ย':'ยอ','ร':'รอ','ล':'ลอ','ว':'วอ','ส':'สอ','ห':'หอ','อ':'ออ','ฮ':'ฮอ','ฆ':'ฆอ','ณ':'ณอ','ธ':'ธอ','ฑ':'ฑอ','ฒ':'ฒอ','ศ':'ศอ','ษ':'ษอ','ฌ':'ฌอ','ฏ':'ฏอ','ฐ':'ฐอ'};
-function cSp(c){return thC[c]||c;}function nSp(n){const d=parseInt(n);return isNaN(d)?'':thD[d]||n;}
-const thT=['','สิบ','ยี่สิบ','สามสิบ','สี่สิบ','ห้าสิบ','หกสิบ','เจ็ดสิบ','แปดสิบ','เก้าสิบ'];
-function qTh(n){if(n<10)return thD[n];const t=Math.floor(n/10),o=n%10;return(t===1?'สิบ':thT[t])+(o===1?'เอ็ด':o===0?'':thD[o]);}
-function ann(q,done){
-  const cw=q.chars.filter(Boolean).map(cSp).join('   '),nw=q.nums.filter(Boolean).map(nSp).join('   ');
-  spk(`เชิญ คิวที่ ${qTh(q.num)}`,()=>setTimeout(()=>spk(`ทะเบียน ${cw}   ${nw}`,()=>setTimeout(()=>spk(`จังหวัด ${q.province}   รับรถได้ที่ ${q.zone}`,()=>{done&&done();},0.82),250),0.58),150),0.82);
+
+// เล่นหลายไฟล์ต่อกัน
+function playSequence(files, cb) {
+  if (!files.length) { cb && cb(); return; }
+  const [first, ...rest] = files;
+  playMP3(first, () => {
+    setTimeout(() => playSequence(rest, cb), 120);
+  });
 }
+
+// สร้างลำดับไฟล์เสียงสำหรับประกาศคิว
+function buildAnnounceFiles(q) {
+  const files = [];
+
+  // "เชิญ คิวที่ XX"
+  files.push('invite.mp3');
+  files.push('queue_at.mp3');
+  files.push(`num_${String(q.num).padStart(2,'0')}.mp3`);
+
+  // "ทะเบียน ก ข – 1 2 3 4"
+  files.push('plate.mp3');
+  q.chars.filter(Boolean).forEach(c => files.push(`char_${c}.mp3`));
+  q.nums.filter(Boolean).forEach(n => files.push(`digit_${n}.mp3`));
+
+  // "จังหวัด ..."
+  files.push('province.mp3');
+  files.push(`prov_${q.province}.mp3`);
+
+  // "รับรถได้ที่ ..."
+  files.push('pickup.mp3');
+  files.push(`zone_${q.zone}.mp3`);
+
+  return files;
+}
+
 const p2=n=>String(n).padStart(2,'0');
 let calAnim=null;
+
 window._trigger=function(q){
-  document.getElementById('yt-wrap').classList.add('dimmed');pauseYT();
+  document.getElementById('yt-wrap').classList.add('dimmed'); pauseYT();
   document.getElementById('idle-state').classList.add('hidden');
   document.getElementById('qov').classList.add('visible');
   animPlate(q);
-  playChime(()=>ann(q,()=>setTimeout(()=>playChime(()=>ann(q,()=>setTimeout(()=>{document.getElementById('yt-wrap').classList.remove('dimmed');playYT();},800))),600)));
+
+  const announceFiles = buildAnnounceFiles(q);
+
+  // chime → ประกาศรอบ 1 → หยุด → chime → ประกาศรอบ 2 → resume YT
+  playChime(() => {
+    playSequence(announceFiles, () => {
+      setTimeout(() => {
+        playChime(() => {
+          playSequence(announceFiles, () => {
+            setTimeout(() => {
+              document.getElementById('yt-wrap').classList.remove('dimmed');
+              playYT();
+            }, 1000);
+          });
+        });
+      }, 600);
+    });
+  });
 };
 function animPlate(q){
   if(calAnim)clearInterval(calAnim);
