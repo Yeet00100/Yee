@@ -204,16 +204,15 @@ function playChime(cb){
 const syn=window.speechSynthesis;let thV=null,vL=false;
 function lV(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
 if(syn){lV();syn.onvoiceschanged=lV;}
-// ── MP3 AUDIO SYSTEM — ใช้ Web Audio API Buffer เพื่อเล่นต่อเนื่องไม่มีดีเลย์ ──
+// ── GAPLESS AUDIO — concat buffers เป็นก้อนเดียวแล้วเล่นครั้งเดียว ──
 const AUDIO_BASE = 'audio/';
-const audioCache = {}; // cache AudioBuffer ไว้ในหน่วยความจำ
+const audioCache = {};
 let currentSource = null;
 
 function stopAllAudio() {
   try { if(currentSource){ currentSource.stop(); currentSource=null; } } catch(e){}
 }
 
-// โหลดไฟล์ MP3 เป็น AudioBuffer แล้วเก็บ cache
 async function loadBuffer(file) {
   if (audioCache[file]) return audioCache[file];
   try {
@@ -228,34 +227,64 @@ async function loadBuffer(file) {
   }
 }
 
-// Preload ไฟล์ที่จะใช้บ่อย
+// รวม AudioBuffer หลายๆ ก้อนเป็นก้อนเดียว
+function concatBuffers(buffers) {
+  const validBufs = buffers.filter(Boolean);
+  if (!validBufs.length) return null;
+  const sampleRate = validBufs[0].sampleRate;
+  const channels = validBufs[0].numberOfChannels;
+
+  // เพิ่ม silence 35ms ระหว่างคำ
+  const silenceSamples = Math.floor(sampleRate * 0.035);
+  const totalLength = validBufs.reduce((sum, b) => sum + b.length + silenceSamples, 0);
+
+  const output = actx.createBuffer(channels, totalLength, sampleRate);
+
+  let offset = 0;
+  for (const buf of validBufs) {
+    for (let ch = 0; ch < channels; ch++) {
+      const outData = output.getChannelData(ch);
+      const inData  = buf.getChannelData(ch < buf.numberOfChannels ? ch : 0);
+      // copy เสียงพร้อม playbackRate 1.15 (speed up)
+      for (let i = 0; i < buf.length; i++) {
+        if (offset + i < totalLength) outData[offset + i] = inData[i];
+      }
+    }
+    offset += buf.length + silenceSamples;
+  }
+  return output;
+}
+
 async function preloadCommon() {
   if (!actx) return;
   const common = ['invite.mp3','queue_at.mp3','plate.mp3','province.mp3','pickup.mp3'];
   await Promise.all(common.map(f => loadBuffer(f)));
 }
 
-// เล่น AudioBuffer ทีละตัวต่อกันไม่มี gap
+// โหลดและต่อ buffer แล้วเล่นครั้งเดียว gapless 100%
 async function playSequence(files, cb) {
   if (!actx) { cb&&cb(); return; }
   if (actx.state === 'suspended') await actx.resume();
 
-  for (const file of files) {
-    const buf = await loadBuffer(file);
-    if (!buf) continue;
-    await new Promise(resolve => {
-      const src = actx.createBufferSource();
-      src.buffer = buf;
-      src.playbackRate.value = 1.15;
-      src.connect(actx.destination);
-      currentSource = src;
-      src.onended = resolve;
-      src.start(0);
-    });
-    // gap เล็กมาก 30ms ระหว่างคำ
-    await new Promise(r => setTimeout(r, 30));
-  }
-  currentSource = null;
+  // โหลดทุกไฟล์พร้อมกัน
+  const buffers = await Promise.all(files.map(f => loadBuffer(f)));
+
+  // concat เป็น buffer เดียว
+  const merged = concatBuffers(buffers);
+  if (!merged) { cb&&cb(); return; }
+
+  // เล่นครั้งเดียวจบ ไม่มี gap เลย
+  await new Promise(resolve => {
+    stopAllAudio();
+    const src = actx.createBufferSource();
+    src.buffer = merged;
+    src.playbackRate.value = 1.15;
+    src.connect(actx.destination);
+    currentSource = src;
+    src.onended = () => { currentSource = null; resolve(); };
+    src.start(0);
+  });
+
   cb && cb();
 }
 
