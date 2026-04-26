@@ -234,8 +234,8 @@ function concatBuffers(buffers) {
   const sampleRate = validBufs[0].sampleRate;
   const channels = validBufs[0].numberOfChannels;
 
-  // เพิ่ม silence 35ms ระหว่างคำ
-  const silenceSamples = Math.floor(sampleRate * 0.035);
+  // เพิ่ม silence 20ms ระหว่างคำ
+  const silenceSamples = Math.floor(sampleRate * 0.020);
   const totalLength = validBufs.reduce((sum, b) => sum + b.length + silenceSamples, 0);
 
   const output = actx.createBuffer(channels, totalLength, sampleRate);
@@ -288,28 +288,28 @@ async function playSequence(files, cb) {
   cb && cb();
 }
 
-// สร้างลำดับไฟล์เสียงสำหรับประกาศคิว
+// สร้างลำดับไฟล์เสียง — ช่อง chars รับได้ทั้งตัวอักษรและตัวเลข
 function buildAnnounceFiles(q) {
   const files = [];
-
-  // "เชิญ คิวที่ XX"
   files.push('invite.mp3');
   files.push('queue_at.mp3');
   files.push(`num_${String(q.num).padStart(2,'0')}.mp3`);
-
-  // "ทะเบียน ก ข – 1 2 3 4"
   files.push('plate.mp3');
-  q.chars.filter(Boolean).forEach(c => files.push(`char_${c}.mp3`));
-  q.nums.filter(Boolean).forEach(n => files.push(`digit_${n}.mp3`));
 
-  // "จังหวัด ..."
+  // ช่อง chars — เช็คว่าเป็นตัวเลขหรือตัวอักษร
+  q.chars.filter(Boolean).forEach(c => {
+    if (/^[0-9]$/.test(c)) {
+      files.push(`digit_${c}.mp3`); // เป็นตัวเลข
+    } else {
+      files.push(`char_${c}.mp3`); // เป็นตัวอักษร
+    }
+  });
+
+  q.nums.filter(Boolean).forEach(n => files.push(`digit_${n}.mp3`));
   files.push('province.mp3');
   files.push(`prov_${q.province}.mp3`);
-
-  // "รับรถได้ที่ ..."
   files.push('pickup.mp3');
   files.push(`zone_${q.zone}.mp3`);
-
   return files;
 }
 

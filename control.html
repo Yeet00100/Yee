@@ -161,9 +161,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         <div class="ig">
           <label>ทะเบียนรถ</label>
           <div class="piw">
-            <input class="pc" id="c1" maxlength="1" placeholder="ก" oninput="mn(this,'c2')">
-            <input class="pc" id="c2" maxlength="1" placeholder="ข" oninput="mn(this,'c3')">
-            <input class="pc" id="c3" maxlength="1" placeholder="ค" oninput="mn(this,'n1')">
+            <input class="pc" id="c1" maxlength="1" placeholder="ก/1" oninput="mnMixed(this,'c2')">
+            <input class="pc" id="c2" maxlength="1" placeholder="ข/2" oninput="mnMixed(this,'c3')">
+            <input class="pc" id="c3" maxlength="1" placeholder="ค/3" oninput="mnMixed(this,'n1')">
             <span class="ps">–</span>
             <input class="pn" id="n1" maxlength="1" placeholder="1" oninput="mn(this,'n2')" type="tel">
             <input class="pn" id="n2" maxlength="1" placeholder="2" oninput="mn(this,'n3')" type="tel">
@@ -210,7 +210,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
     <div class="mtitle">✏️ แก้ไขข้อมูลคิว</div>
     <input type="hidden" id="eid">
     <div class="fr" style="margin-bottom:10px"><div class="ig" style="max-width:100px"><label>ลำดับคิว</label><input type="number" id="eqn" min="1" max="999" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center"></div></div>
-    <div class="fr"><div class="ig"><label>ทะเบียนรถ</label><div class="piw"><input class="pc" id="ec1" maxlength="1" oninput="mn(this,'ec2')"><input class="pc" id="ec2" maxlength="1" oninput="mn(this,'ec3')"><input class="pc" id="ec3" maxlength="1" oninput="mn(this,'en1')"><span class="ps">–</span><input class="pn" id="en1" maxlength="1" oninput="mn(this,'en2')" type="tel"><input class="pn" id="en2" maxlength="1" oninput="mn(this,'en3')" type="tel"><input class="pn" id="en3" maxlength="1" oninput="mn(this,'en4')" type="tel"><input class="pn" id="en4" maxlength="1" type="tel"></div></div></div>
+    <div class="fr"><div class="ig"><label>ทะเบียนรถ</label><div class="piw"><input class="pc" id="ec1" maxlength="1" oninput="mnMixed(this,'ec2')"><input class="pc" id="ec2" maxlength="1" oninput="mnMixed(this,'ec3')"><input class="pc" id="ec3" maxlength="1" oninput="mnMixed(this,'en1')"><span class="ps">–</span><input class="pn" id="en1" maxlength="1" oninput="mn(this,'en2')" type="tel"><input class="pn" id="en2" maxlength="1" oninput="mn(this,'en3')" type="tel"><input class="pn" id="en3" maxlength="1" oninput="mn(this,'en4')" type="tel"><input class="pn" id="en4" maxlength="1" type="tel"></div></div></div>
     <div class="fr" style="margin-top:9px">
       <div class="ig"><label>จังหวัด</label><select id="ep"><option value="">-- เลือกจังหวัด --</option><option>กรุงเทพมหานคร</option><option>ชลบุรี</option><option>เชียงใหม่</option><option>นนทบุรี</option><option>ปทุมธานี</option><option>พระนครศรีอยุธยา</option><option>ภูเก็ต</option><option>ระยอง</option><option>สมุทรปราการ</option><option>ขอนแก่น</option><option>นครราชสีมา</option><option>อุดรธานี</option><option>สงขลา</option><option>สุราษฎร์ธานี</option></select></div>
       <div class="ig" style="max-width:120px"><label>จุดรับรถ</label><select id="ez"></select></div>
@@ -284,6 +284,12 @@ function updateNextNum(v){const n=parseInt(v);if(!isNaN(n)&&n>=1)nextNum=n;docum
 function updateSpeed(v){sRate=parseFloat(v);document.getElementById('sv').textContent='×'+sRate.toFixed(1);}
 function updateVolume(v){sVol=parseFloat(v);document.getElementById('vv').textContent=Math.round(sVol*100)+'%';}
 function mn(el,nid){el.value=el.value.toUpperCase();if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
+// ช่อง 3 แรก รับได้ทั้งตัวอักษรและตัวเลข
+function mnMixed(el,nid){
+  // ถ้าเป็นตัวอักษรให้ uppercase ถ้าเป็นตัวเลขปล่อยไว้
+  if(el.value && !/^[0-9]$/.test(el.value)) el.value=el.value.toUpperCase();
+  if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();
+}
 
 // CLOUDINARY
 const CL_CLOUD='db7jrlo6m', CL_PRESET='QueueDoc';
