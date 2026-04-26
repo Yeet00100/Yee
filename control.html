@@ -115,6 +115,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 .idle .ii{font-size:44px;opacity:.2;margin-bottom:10px}
 .idle p{font-size:14px}
 .zrow{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;margin-bottom:6px}
+/* SERVICE TYPE BADGE */
+.stype{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.stype-insp{background:rgba(124,77,255,.12);color:var(--accent);border:1px solid rgba(124,77,255,.25)}
+.stype-reg{background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.25)}
+/* PHOTO UPLOAD */
+.photo-upload-wrap{margin-top:8px}
+.photo-label{display:flex;align-items:center;gap:7px;cursor:pointer;background:var(--surface2);border:1.5px dashed var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text-muted);font-weight:600;transition:all .15s}
+.photo-label:hover{border-color:var(--accent);color:var(--accent)}
+.photo-preview{width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:6px;display:none}
+.photo-uploading{font-size:11px;color:var(--text-muted);margin-top:4px;display:none}
+/* INSPECTOR photo */
+.doc-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer}
+.doc-img:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -132,6 +145,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
     <div class="clock" id="clock">--:--:--</div>
     <div class="div"></div>
     <button class="btn btn-sm" onclick="clearDone()">ล้างเสร็จแล้ว</button>
+    <div class="div"></div>
+    <button class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border-color:#fecaca" onclick="clearAllEndOfDay()">🗑 ล้างข้อมูลสิ้นวัน</button>
   </div>
 </header>
 <div class="layout">
@@ -165,7 +180,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         <div class="ig"><label>จังหวัด</label><select id="province"><option value="">-- เลือกจังหวัด --</option><option>กรุงเทพมหานคร</option><option>กระบี่</option><option>กาญจนบุรี</option><option>กาฬสินธุ์</option><option>กำแพงเพชร</option><option>ขอนแก่น</option><option>จันทบุรี</option><option>ฉะเชิงเทรา</option><option>ชลบุรี</option><option>ชัยนาท</option><option>ชัยภูมิ</option><option>ชุมพร</option><option>เชียงราย</option><option>เชียงใหม่</option><option>ตรัง</option><option>ตราด</option><option>ตาก</option><option>นครนายก</option><option>นครปฐม</option><option>นครพนม</option><option>นครราชสีมา</option><option>นครศรีธรรมราช</option><option>นครสวรรค์</option><option>นนทบุรี</option><option>นราธิวาส</option><option>น่าน</option><option>บึงกาฬ</option><option>บุรีรัมย์</option><option>ปทุมธานี</option><option>ประจวบคีรีขันธ์</option><option>ปราจีนบุรี</option><option>ปัตตานี</option><option>พระนครศรีอยุธยา</option><option>พะเยา</option><option>พังงา</option><option>พัทลุง</option><option>พิจิตร</option><option>พิษณุโลก</option><option>เพชรบุรี</option><option>เพชรบูรณ์</option><option>แพร่</option><option>ภูเก็ต</option><option>มหาสารคาม</option><option>มุกดาหาร</option><option>แม่ฮ่องสอน</option><option>ยโสธร</option><option>ยะลา</option><option>ร้อยเอ็ด</option><option>ระนอง</option><option>ระยอง</option><option>ราชบุรี</option><option>ลพบุรี</option><option>ลำปาง</option><option>ลำพูน</option><option>เลย</option><option>ศรีสะเกษ</option><option>สกลนคร</option><option>สงขลา</option><option>สตูล</option><option>สมุทรปราการ</option><option>สมุทรสงคราม</option><option>สมุทรสาคร</option><option>สระแก้ว</option><option>สระบุรี</option><option>สิงห์บุรี</option><option>สุโขทัย</option><option>สุพรรณบุรี</option><option>สุราษฎร์ธานี</option><option>สุรินทร์</option><option>หนองคาย</option><option>หนองบัวลำภู</option><option>อ่างทอง</option><option>อำนาจเจริญ</option><option>อุดรธานี</option><option>อุตรดิตถ์</option><option>อุทัยธานี</option><option>อุบลราชธานี</option></select></div>
         <div class="ig" style="max-width:120px"><label>จุดรับรถ</label><select id="zone"></select></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="addQueue()">+ เพิ่มคิว</button>
+      <div class="fr">
+        <div class="ig">
+          <label>ประเภทบริการ</label>
+          <select id="stype">
+            <option value="inspect">🔍 ตรวจสภาพอย่างเดียว</option>
+            <option value="register">📋 ตรวจสภาพ + ต่อทะเบียน</option>
+          </select>
+        </div>
+      </div>
+      <div class="photo-upload-wrap">
+        <label class="photo-label" for="doc-photo">📷 ถ่าย/อัปโหลดรูปเอกสาร (ไม่บังคับ)</label>
+        <input type="file" id="doc-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
+        <img id="photo-preview" class="photo-preview" alt="ตัวอย่างเอกสาร">
+        <div class="photo-uploading" id="photo-uploading">⏳ กำลังอัปโหลด...</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="addQueue()">+ เพิ่มคิว</button>
     </div>
     <div class="qlist" id="qlist"><div class="empty"><div class="eicon">📋</div><p>ยังไม่มีคิว</p></div></div>
   </div>
@@ -259,7 +289,67 @@ function updateSpeed(v){sRate=parseFloat(v);document.getElementById('sv').textCo
 function updateVolume(v){sVol=parseFloat(v);document.getElementById('vv').textContent=Math.round(sVol*100)+'%';}
 function mn(el,nid){el.value=el.value.toUpperCase();if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
 
-// ZONES
+// CLOUDINARY
+const CL_CLOUD='db7jrlo6m', CL_PRESET='QueueDoc';
+let pendingPhotoUrl='', pendingPhotoId='';
+
+function previewPhoto(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('photo-preview');
+    prev.src=e.target.result;prev.style.display='block';
+  };
+  reader.readAsDataURL(file);
+  uploadToCloudinary(file);
+}
+
+function compressImage(file,cb){
+  const img=new Image(),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+  const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    const MAX=1200;let w=img.width,h=img.height;
+    if(w>MAX){h=h*(MAX/w);w=MAX;}
+    canvas.width=w;canvas.height=h;
+    ctx.drawImage(img,0,0,w,h);
+    canvas.toBlob(blob=>cb(blob),'image/jpeg',0.75);
+    URL.revokeObjectURL(url);
+  };
+  img.src=url;
+}
+
+function uploadToCloudinary(file){
+  const upEl=document.getElementById('photo-uploading');
+  upEl.style.display='block';
+  compressImage(file,blob=>{
+    const fd=new FormData();
+    fd.append('file',blob);
+    fd.append('upload_preset',CL_PRESET);
+    fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/image/upload`,{method:'POST',body:fd})
+      .then(r=>r.json())
+      .then(d=>{
+        pendingPhotoUrl=d.secure_url||'';
+        pendingPhotoId=d.public_id||'';
+        upEl.style.display='none';
+        toast('📷 อัปโหลดรูปเรียบร้อย');
+      })
+      .catch(()=>{upEl.style.display='none';toast('❌ อัปโหลดรูปไม่สำเร็จ');});
+  });
+}
+
+function deleteCloudinaryPhoto(publicId){
+  // ลบรูปผ่าน unsigned — ต้องใช้ server แต่ใช้ฟีเจอร์ auto-expire แทนได้
+  // ตั้ง Auto-delete ใน Cloudinary Console แทนครับ (Upload Preset → Folder settings)
+  console.log('Photo to delete:', publicId);
+}
+
+function clearPhotoForm(){
+  document.getElementById('doc-photo').value='';
+  document.getElementById('photo-preview').style.display='none';
+  document.getElementById('photo-preview').src='';
+  document.getElementById('photo-uploading').style.display='none';
+  pendingPhotoUrl='';pendingPhotoId='';
+}
 function rZS(){['zone','ez'].forEach(id=>{const s=document.getElementById(id);if(!s)return;const c=s.value;s.innerHTML=zones.map(z=>`<option${z===c?' selected':''}>${z}</option>`).join('');});}
 function openZoneModal(){rZLE();document.getElementById('zm').classList.add('open');}
 function closeZoneModal(){document.getElementById('zm').classList.remove('open');}
@@ -274,12 +364,19 @@ function addQueue(){
   const c1=document.getElementById('c1').value.trim().toUpperCase(),c2=document.getElementById('c2').value.trim().toUpperCase(),c3=document.getElementById('c3').value.trim().toUpperCase();
   const n1=document.getElementById('n1').value.trim(),n2=document.getElementById('n2').value.trim(),n3=document.getElementById('n3').value.trim(),n4=document.getElementById('n4').value.trim();
   const prov=document.getElementById('province').value,zone=document.getElementById('zone').value;
+  const stype=document.getElementById('stype').value;
   if(!c1&&!n1){toast('กรุณากรอกทะเบียนรถ');return;}
   if(!prov){toast('กรุณาเลือกจังหวัด');return;}
-  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting'};
-  queues.push(q);renderAll();['c1','c2','c3','n1','n2','n3','n4'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('c1').focus();document.getElementById('nni').value=nextNum;
-  push();toast(`เพิ่มคิว ${p2(q.num)}`);
+  if(pendingPhotoUrl===''&&document.getElementById('doc-photo').files.length>0){
+    toast('⏳ รอรูปอัปโหลดเสร็จก่อน');return;
+  }
+  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting',serviceType:stype,photoUrl:pendingPhotoUrl,photoId:pendingPhotoId};
+  queues.push(q);renderAll();
+  ['c1','c2','c3','n1','n2','n3','n4'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c1').focus();
+  document.getElementById('nni').value=nextNum;
+  clearPhotoForm();
+  push();toast(`เพิ่มคิว ${p2(q.num)} — ${stype==='register'?'ต่อทะเบียน':'ตรวจสภาพ'}`);
 }
 function callQueue(id){
   const q=queues.find(x=>x.id===id);if(!q||q.status==='done')return;
@@ -295,6 +392,15 @@ function markDone(id){
 }
 function delQ(id){queues=queues.filter(x=>x.id!==id);renderAll();push();}
 function clearDone(){queues=queues.filter(x=>x.status!=='done');renderAll();push();toast('ล้างเสร็จแล้ว');}
+
+function clearAllEndOfDay(){
+  if(!confirm('⚠️ ล้างข้อมูลทั้งหมดสิ้นวัน?\nรูปเอกสารและคิวทั้งหมดจะถูกลบถาวร'))return;
+  // ล้าง queues ทั้งหมด รูปใน Cloudinary จะหมดอายุอัตโนมัติตาม preset ที่ตั้งไว้
+  queues=[];calId=null;nextNum=1;
+  document.getElementById('nni').value=1;
+  document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">🔔</div><p>ยังไม่มีการเรียกคิว</p></div>`;
+  renderAll();push();toast('✅ ล้างข้อมูลสิ้นวันเรียบร้อย');
+}
 function openEdit(id){
   const q=queues.find(x=>x.id===id);if(!q)return;
   document.getElementById('eid').value=id;document.getElementById('eqn').value=q.num;
@@ -341,7 +447,7 @@ function rQL(){
         <div class="qnum">${p2(q.num)}</div>
         <div class="qinfo">
           <div class="qplate">${q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')}<span style="color:var(--text-muted);margin:0 2px">–</span>${q.nums.filter(Boolean).map(n=>`<span class="pn2">${n}</span>`).join('')}</div>
-          <div class="qmeta">${sb(q.status)}<span>${q.province||'—'}</span></div>
+          <div class="qmeta">${sb(q.status)}<span class="stype ${q.serviceType==='register'?'stype-reg':'stype-insp'}">${q.serviceType==='register'?'📋 ต่อทะเบียน':'🔍 ตรวจสภาพ'}</span><span>${q.province||'—'}</span></div>
           ${q.note&&q.status==='failed'?`<div style="font-size:11px;color:var(--red);margin-top:3px;padding:3px 7px;background:var(--red-bg);border-radius:5px;border-left:2px solid var(--red)">📝 ${q.note}</div>`:''}
         </div>
         <div class="qzone">${q.zone}</div>

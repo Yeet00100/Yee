@@ -57,6 +57,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .note-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;padding:9px 12px;outline:none;resize:none;min-height:60px}
 .note-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,77,255,.1)}
 .card-note{font-size:12px;color:var(--text-dim);margin-top:8px;padding:6px 10px;background:rgba(124,77,255,.05);border-radius:6px;border-left:3px solid var(--accent)}
+.doc-img{width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer;transition:opacity .15s}
+.doc-img:hover{opacity:.85}
 .empty{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;line-height:2.5}
 .eicon{font-size:48px;opacity:.25;margin-bottom:10px}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--accent);color:#fff;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(124,77,255,.3)}
@@ -184,17 +186,22 @@ function renderPage(){
       +'<span class="pl" style="margin:0 3px">–</span>'
       +q.nums.filter(Boolean).map(n=>`<span class="pn">${n}</span>`).join('');
     const cardCls=isIns?' c-i':isPassed?' c-p':isFailed?' c-f':'';
+    const stypeBadge=q.serviceType==='register'
+      ?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.25)">📋 ต่อทะเบียน</span>`
+      :`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(124,77,255,.12);color:#7c4dff;border:1px solid rgba(124,77,255,.25)">🔍 ตรวจสภาพ</span>`;
     return `
       <div class="card${cardCls}">
         <div class="card-top">
           <div class="card-num">${p2(q.num)}</div>
-          <div>
+          <div style="flex:1">
             <div class="card-plate">${plateHTML}</div>
             <div class="card-info">
+              ${stypeBadge}
               <span class="tag tag-prov">${q.province}</span>
               <span class="tag tag-zone">${q.zone}</span>
             </div>
             ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
+            ${q.photoUrl?`<img src="${q.photoUrl}" class="doc-img" alt="เอกสาร" onclick="window.open('${q.photoUrl}','_blank')">`:''}
           </div>
         </div>
         <div class="card-actions">
