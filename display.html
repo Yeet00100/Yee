@@ -227,30 +227,54 @@ async function loadBuffer(file) {
   }
 }
 
-// รวม AudioBuffer หลายๆ ก้อนเป็นก้อนเดียว
+// รวม AudioBuffer ด้วย Crossfade เหมือนคนพูดต่อเนื่อง
 function concatBuffers(buffers) {
   const validBufs = buffers.filter(Boolean);
   if (!validBufs.length) return null;
   const sampleRate = validBufs[0].sampleRate;
   const channels = validBufs[0].numberOfChannels;
 
-  // เพิ่ม silence 20ms ระหว่างคำ
-  const silenceSamples = Math.floor(sampleRate * 0.020);
-  const totalLength = validBufs.reduce((sum, b) => sum + b.length + silenceSamples, 0);
+  // crossfade 15ms ระหว่างคำ
+  const xfadeSamples = Math.floor(sampleRate * 0.015);
+
+  // คำนวณ length รวม โดยหักส่วน overlap
+  const totalLength = validBufs.reduce((sum, b, i) =>
+    sum + b.length - (i < validBufs.length - 1 ? xfadeSamples : 0), 0);
 
   const output = actx.createBuffer(channels, totalLength, sampleRate);
 
   let offset = 0;
-  for (const buf of validBufs) {
+  for (let bi = 0; bi < validBufs.length; bi++) {
+    const buf = validBufs[bi];
     for (let ch = 0; ch < channels; ch++) {
       const outData = output.getChannelData(ch);
       const inData  = buf.getChannelData(ch < buf.numberOfChannels ? ch : 0);
-      // copy เสียงพร้อม playbackRate 1.15 (speed up)
+
       for (let i = 0; i < buf.length; i++) {
-        if (offset + i < totalLength) outData[offset + i] = inData[i];
+        const pos = offset + i;
+        if (pos >= totalLength) break;
+
+        let sample = inData[i];
+
+        // fade in ช่วงต้นคำ (ยกเว้นคำแรก)
+        if (bi > 0 && i < xfadeSamples) {
+          const fadeIn = i / xfadeSamples;
+          sample *= fadeIn;
+          // crossfade กับเสียงเดิมที่ค่อยๆ หาย
+          outData[pos] = outData[pos] * (1 - fadeIn) + sample;
+          continue;
+        }
+
+        // fade out ช่วงท้ายคำ (ยกเว้นคำสุดท้าย)
+        if (bi < validBufs.length - 1 && i >= buf.length - xfadeSamples) {
+          const fadeOut = (buf.length - i) / xfadeSamples;
+          sample *= fadeOut;
+        }
+
+        outData[pos] = (outData[pos] || 0) + sample;
       }
     }
-    offset += buf.length + silenceSamples;
+    offset += buf.length - (bi < validBufs.length - 1 ? xfadeSamples : 0);
   }
   return output;
 }
