@@ -234,8 +234,8 @@ function concatBuffers(buffers) {
   const sampleRate = validBufs[0].sampleRate;
   const channels = validBufs[0].numberOfChannels;
 
-  // crossfade 15ms ระหว่างคำ
-  const xfadeSamples = Math.floor(sampleRate * 0.015);
+  // crossfade 10ms ระหว่างคำ
+  const xfadeSamples = Math.floor(sampleRate * 0.010);
 
   // คำนวณ length รวม โดยหักส่วน overlap
   const totalLength = validBufs.reduce((sum, b, i) =>

@@ -115,6 +115,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 .idle .ii{font-size:44px;opacity:.2;margin-bottom:10px}
 .idle p{font-size:14px}
 .zrow{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;margin-bottom:6px}
+.stag{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--text-dim);cursor:pointer;transition:all .15s;user-select:none}
+.stag:hover{border-color:#c4b5fd;color:var(--accent)}
+.stag input[type=checkbox]{display:none}
+.stag:has(input:checked){background:rgba(124,77,255,.12);border-color:var(--accent);color:var(--accent)}
 /* SERVICE TYPE BADGE */
 .stype{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .stype-insp{background:rgba(124,77,255,.12);color:var(--accent);border:1px solid rgba(124,77,255,.25)}
@@ -178,11 +182,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
       </div>
       <div class="fr">
         <div class="ig">
-          <label>ประเภทบริการ</label>
-          <select id="stype">
-            <option value="inspect">🔍 ตรวจสภาพอย่างเดียว</option>
-            <option value="register">📋 ตรวจสภาพ + ต่อทะเบียน</option>
-          </select>
+          <label>ประเภทบริการ (เลือกได้หลายอย่าง)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px" id="stype-wrap">
+            <label class="stag"><input type="checkbox" value="inspect"> 🔍 ตรวจสภาพ</label>
+            <label class="stag"><input type="checkbox" value="register"> 📋 ต่อทะเบียน</label>
+            <label class="stag"><input type="checkbox" value="newreg"> 🆕 จดทะเบียนใหม่</label>
+            <label class="stag"><input type="checkbox" value="tax"> 💰 ภาษีขาด&gt;1ปี</label>
+            <label class="stag"><input type="checkbox" value="transfer"> 🔄 โอน</label>
+            <label class="stag"><input type="checkbox" value="province"> 📍 แจ้งย้ายจังหวัด</label>
+          </div>
         </div>
       </div>
       <div class="photo-upload-wrap">
@@ -366,17 +374,21 @@ function addQueue(){
   const c1=document.getElementById('c1').value.trim().toUpperCase(),c2=document.getElementById('c2').value.trim().toUpperCase(),c3=document.getElementById('c3').value.trim().toUpperCase();
   const n1=document.getElementById('n1').value.trim(),n2=document.getElementById('n2').value.trim(),n3=document.getElementById('n3').value.trim(),n4=document.getElementById('n4').value.trim();
   const prov=document.getElementById('province').value,zone=document.getElementById('zone').value;
-  const stype=document.getElementById('stype').value;
+  // อ่านค่า checkbox หลายตัว
+  const services=[...document.querySelectorAll('#stype-wrap input:checked')].map(x=>x.value);
   if(!c1&&!n1){toast('กรุณากรอกทะเบียนรถ');return;}
   if(!prov){toast('กรุณาเลือกจังหวัด');return;}
+  if(!services.length){toast('กรุณาเลือกประเภทบริการ');return;}
   if(pendingPhotoUrl===''&&document.getElementById('doc-photo').files.length>0){
     toast('⏳ รอรูปอัปโหลดเสร็จก่อน');return;
   }
-  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting',serviceType:stype,photoUrl:pendingPhotoUrl,photoId:pendingPhotoId};
+  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting',services,photoUrl:pendingPhotoUrl,photoId:pendingPhotoId};
   queues.push(q);renderAll();
   ['c1','c2','c3','n1','n2','n3','n4'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c1').focus();
   document.getElementById('nni').value=nextNum;
+  // reset checkboxes
+  document.querySelectorAll('#stype-wrap input').forEach(x=>x.checked=false);
   clearPhotoForm();
   push();toast(`เพิ่มคิว ${p2(q.num)} — ${stype==='register'?'ต่อทะเบียน':'ตรวจสภาพ'}`);
 }
@@ -424,6 +436,13 @@ function saveEdit(){
   closeModal();renderAll();if(q.status==='calling')animCal(q);push();toast('บันทึกแล้ว');
 }
 
+// SERVICE LABELS
+const SVC={inspect:'🔍 ตรวจสภาพ',register:'📋 ต่อทะเบียน',newreg:'🆕 จดทะเบียนใหม่',tax:'💰 ภาษีขาด>1ปี',transfer:'🔄 โอน',province:'📍 แจ้งย้ายจังหวัด'};
+function svcTags(services){
+  if(!services||!services.length) return '<span style="font-size:10px;color:var(--text-muted)">—</span>';
+  return services.map(s=>`<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:rgba(124,77,255,.1);color:var(--accent);border:1px solid rgba(124,77,255,.2)">${SVC[s]||s}</span>`).join('');
+}
+
 // STATUS
 function sb(s){
   const m={
@@ -449,7 +468,8 @@ function rQL(){
         <div class="qnum">${p2(q.num)}</div>
         <div class="qinfo">
           <div class="qplate">${q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')}<span style="color:var(--text-muted);margin:0 2px">–</span>${q.nums.filter(Boolean).map(n=>`<span class="pn2">${n}</span>`).join('')}</div>
-          <div class="qmeta">${sb(q.status)}<span class="stype ${q.serviceType==='register'?'stype-reg':'stype-insp'}">${q.serviceType==='register'?'📋 ต่อทะเบียน':'🔍 ตรวจสภาพ'}</span><span>${q.province||'—'}</span></div>
+          <div class="qmeta">${sb(q.status)}<span>${q.province||'—'}</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${svcTags(q.services||[])}</div>
           ${q.note&&q.status==='failed'?`<div style="font-size:11px;color:var(--red);margin-top:3px;padding:3px 7px;background:var(--red-bg);border-radius:5px;border-left:2px solid var(--red)">📝 ${q.note}</div>`:''}
         </div>
         <div class="qzone">${q.zone}</div>

@@ -161,6 +161,12 @@ window.toggleNote=function(id){
   if(w)w.classList.toggle('show');
 };
 
+const SVC={inspect:'🔍 ตรวจสภาพ',register:'📋 ต่อทะเบียน',newreg:'🆕 จดทะเบียนใหม่',tax:'💰 ภาษีขาด>1ปี',transfer:'🔄 โอน',province:'📍 แจ้งย้ายจังหวัด'};
+function svcTags(services){
+  if(!services||!services.length)return '';
+  return services.map(s=>`<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(124,77,255,.1);color:#7c4dff;border:1px solid rgba(124,77,255,.2)">${SVC[s]||s}</span>`).join('');
+}
+
 const p2=n=>String(n).padStart(2,'0');
 
 function renderPage(){
@@ -186,9 +192,21 @@ function renderPage(){
       +'<span class="pl" style="margin:0 3px">–</span>'
       +q.nums.filter(Boolean).map(n=>`<span class="pn">${n}</span>`).join('');
     const cardCls=isIns?' c-i':isPassed?' c-p':isFailed?' c-f':'';
-    const stypeBadge=q.serviceType==='register'
-      ?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.25)">📋 ต่อทะเบียน</span>`
-      :`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(124,77,255,.12);color:#7c4dff;border:1px solid rgba(124,77,255,.25)">🔍 ตรวจสภาพ</span>`;
+    return `
+      <div class="card${cardCls}">
+        <div class="card-top">
+          <div class="card-num">${p2(q.num)}</div>
+          <div style="flex:1">
+            <div class="card-plate">${plateHTML}</div>
+            <div class="card-info">
+              <span class="tag tag-prov">${q.province}</span>
+              <span class="tag tag-zone">${q.zone}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${svcTags(q.services||[])}</div>
+            ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
+            ${q.photoUrl?`<img src="${q.photoUrl}" onclick="window.open('${q.photoUrl}')" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer" alt="เอกสาร">`:''}
+          </div>
+        </div>
     return `
       <div class="card${cardCls}">
         <div class="card-top">
