@@ -188,6 +188,7 @@ const AUDIO_BASE = 'audio/'; // โฟลเดอร์ audio ใน GitHub
 // เล่นไฟล์ MP3 แล้ว callback เมื่อเสร็จ
 function playMP3(file, cb) {
   const audio = new Audio(AUDIO_BASE + file);
+  audio.playbackRate = 1.2;  // ปรับความเร็ว: 1.0=ปกติ, 1.2=เร็วขึ้น, 1.5=เร็วมาก
   audio.onended = () => { cb && cb(); };
   audio.onerror = () => { console.warn('ไม่พบไฟล์:', file); cb && cb(); };
   audio.play().catch(() => { cb && cb(); });
