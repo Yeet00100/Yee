@@ -127,7 +127,6 @@ const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-9
 const app=initializeApp(cfg),db=getDatabase(app);
 onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'กำลังเชื่อมต่อ...';});
 let lastCal=null;
-let isAnnouncing=false; // ป้องกันเสียงซ้อน
 
 onValue(ref(db,'queue_system'),snap=>{
   const d=snap.val();if(!d)return;
@@ -138,14 +137,18 @@ onValue(ref(db,'queue_system'),snap=>{
 
   if(calling&&calling!==lastCal){
     const q=queues.find(x=>x.id===calling);
-    if(q&&window._aReady&&!isAnnouncing){
-      isAnnouncing=true;
-      window._trigger(q,()=>{ isAnnouncing=false; });
+    if(q){
+      if(!window._aReady){
+        // ยังไม่ unlock — เก็บรอไว้
+        window._pendingQueue=q;
+      } else if(!window._isPlaying){
+        window._trigger(q,()=>{});
+      }
     }
     lastCal=calling;
   } else if(!calling){
     lastCal=null;
-    isAnnouncing=false;
+    window._isPlaying=false;
   }
 
   if(calling){
@@ -159,16 +162,22 @@ onValue(ref(db,'queue_system'),snap=>{
 });
 </script>
 <script>
-let actx=null,aReady=false;window._aReady=false;
-let pendingQueue=null; // เก็บคิวที่รอเล่นถ้ายังไม่ unlock
+let actx=null;
+window._aReady=false;
+window._isPlaying=false;
+window._pendingQueue=null;
 
 function unlockStart(){
-  try{actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();aReady=true;window._aReady=true;}catch(e){}
+  try{
+    actx=new(window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    window._aReady=true;
+  }catch(e){}
   document.getElementById('uov').classList.add('hidden');
-  // ถ้ามีคิวรอเล่นอยู่ให้เล่นทันที
-  if(pendingQueue){
-    window._trigger(pendingQueue,()=>{});
-    pendingQueue=null;
+  // มีคิวรอเล่นอยู่ให้เล่นทันที
+  if(window._pendingQueue&&!window._isPlaying){
+    window._trigger(window._pendingQueue,()=>{});
+    window._pendingQueue=null;
   }
 }
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);
@@ -195,24 +204,34 @@ function playChime(cb){
 const syn=window.speechSynthesis;let thV=null,vL=false;
 function lV(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
 if(syn){lV();syn.onvoiceschanged=lV;}
-// ── MP3 AUDIO SYSTEM — เล่นไฟล์เสียงจาก GitHub แทน Web Speech API ──
-const AUDIO_BASE = 'audio/'; // โฟลเดอร์ audio ใน GitHub
+// ── MP3 AUDIO SYSTEM ──
+const AUDIO_BASE = 'audio/';
+let currentAudio = null; // track current audio to stop if needed
 
-// เล่นไฟล์ MP3 แล้ว callback เมื่อเสร็จ
-function playMP3(file, cb) {
-  const audio = new Audio(AUDIO_BASE + file);
-  audio.playbackRate = 1.2;  // ปรับความเร็ว: 1.0=ปกติ, 1.2=เร็วขึ้น, 1.5=เร็วมาก
-  audio.onended = () => { cb && cb(); };
-  audio.onerror = () => { console.warn('ไม่พบไฟล์:', file); cb && cb(); };
-  audio.play().catch(() => { cb && cb(); });
+function stopAllAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+    currentAudio = null;
+  }
 }
 
-// เล่นหลายไฟล์ต่อกัน
+function playMP3(file, cb) {
+  const audio = new Audio(AUDIO_BASE + file);
+  audio.playbackRate = 1.15;
+  currentAudio = audio;
+  audio.onended = () => { currentAudio = null; cb && cb(); };
+  audio.onerror = () => { currentAudio = null; cb && cb(); };
+  const p = audio.play();
+  if (p && p.catch) p.catch(() => { cb && cb(); });
+}
+
+// เล่นหลายไฟล์ต่อกัน — gap สั้นลงเหลือ 50ms
 function playSequence(files, cb) {
   if (!files.length) { cb && cb(); return; }
   const [first, ...rest] = files;
   playMP3(first, () => {
-    setTimeout(() => playSequence(rest, cb), 120);
+    setTimeout(() => playSequence(rest, cb), 50);
   });
 }
 
@@ -246,8 +265,10 @@ let calAnim=null;
 
 let isPlaying=false;
 window._trigger=function(q, doneCb){
-  if(isPlaying)return; // ป้องกันซ้อน
-  isPlaying=true;
+  if(window._isPlaying)return; // ป้องกันซ้อน 100%
+  window._isPlaying=true;
+  stopAllAudio();
+
   document.getElementById('yt-wrap').classList.add('dimmed'); pauseYT();
   document.getElementById('idle-state').classList.add('hidden');
   document.getElementById('qov').classList.add('visible');
@@ -259,7 +280,7 @@ window._trigger=function(q, doneCb){
       setTimeout(()=>{
         playChime(()=>{
           playSequence(announceFiles,()=>{
-            isPlaying=false;
+            window._isPlaying=false;
             doneCb&&doneCb();
             setTimeout(()=>{
               document.getElementById('yt-wrap').classList.remove('dimmed');
@@ -267,7 +288,7 @@ window._trigger=function(q, doneCb){
             },1000);
           });
         });
-      },600);
+      },400);
     });
   });
 };
