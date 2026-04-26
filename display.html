@@ -127,25 +127,31 @@ const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-9
 const app=initializeApp(cfg),db=getDatabase(app);
 onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'กำลังเชื่อมต่อ...';});
 let lastCal=null;
+let isAnnouncing=false; // ป้องกันเสียงซ้อน
+
 onValue(ref(db,'queue_system'),snap=>{
   const d=snap.val();if(!d)return;
   const{queues=[],calling=null}=d;
   window._rQP(queues,calling);
 
-  // show overlay if there are passed/calling queues
   const hasPassed=queues.some(x=>x.status==='passed'||x.status==='calling');
 
   if(calling&&calling!==lastCal){
     const q=queues.find(x=>x.id===calling);
-    if(q&&window._aReady)window._trigger(q);
+    if(q&&window._aReady&&!isAnnouncing){
+      isAnnouncing=true;
+      window._trigger(q,()=>{ isAnnouncing=false; });
+    }
     lastCal=calling;
-  } else if(!calling){lastCal=null;}
+  } else if(!calling){
+    lastCal=null;
+    isAnnouncing=false;
+  }
 
   if(calling){
     const q=queues.find(x=>x.id===calling);
     if(q)window._showStatic(q);
   } else if(hasPassed){
-    // แสดง overlay รายการรอ แต่ไม่แสดงคิวกำลังเรียก
     window._showWaiting();
   } else {
     window._showIdle();
@@ -154,9 +160,16 @@ onValue(ref(db,'queue_system'),snap=>{
 </script>
 <script>
 let actx=null,aReady=false;window._aReady=false;
+let pendingQueue=null; // เก็บคิวที่รอเล่นถ้ายังไม่ unlock
+
 function unlockStart(){
   try{actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();aReady=true;window._aReady=true;}catch(e){}
   document.getElementById('uov').classList.add('hidden');
+  // ถ้ามีคิวรอเล่นอยู่ให้เล่นทันที
+  if(pendingQueue){
+    window._trigger(pendingQueue,()=>{});
+    pendingQueue=null;
+  }
 }
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);
 document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false});
@@ -231,27 +244,30 @@ function buildAnnounceFiles(q) {
 const p2=n=>String(n).padStart(2,'0');
 let calAnim=null;
 
-window._trigger=function(q){
+let isPlaying=false;
+window._trigger=function(q, doneCb){
+  if(isPlaying)return; // ป้องกันซ้อน
+  isPlaying=true;
   document.getElementById('yt-wrap').classList.add('dimmed'); pauseYT();
   document.getElementById('idle-state').classList.add('hidden');
   document.getElementById('qov').classList.add('visible');
   animPlate(q);
 
   const announceFiles = buildAnnounceFiles(q);
-
-  // chime → ประกาศรอบ 1 → หยุด → chime → ประกาศรอบ 2 → resume YT
-  playChime(() => {
-    playSequence(announceFiles, () => {
-      setTimeout(() => {
-        playChime(() => {
-          playSequence(announceFiles, () => {
-            setTimeout(() => {
+  playChime(()=>{
+    playSequence(announceFiles,()=>{
+      setTimeout(()=>{
+        playChime(()=>{
+          playSequence(announceFiles,()=>{
+            isPlaying=false;
+            doneCb&&doneCb();
+            setTimeout(()=>{
               document.getElementById('yt-wrap').classList.remove('dimmed');
               playYT();
-            }, 1000);
+            },1000);
           });
         });
-      }, 600);
+      },600);
     });
   });
 };
