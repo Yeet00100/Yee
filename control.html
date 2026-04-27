@@ -3,242 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ห้องควบคุม — สถานตรวจสภาพรถ</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>ห้องควบคุม — VNservice</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VNservice">
+<meta name="theme-color" content="#1a6fe8">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f3fa;--surface:#ffffff;--surface2:#ede9f8;--border:#ddd6f3;--accent:#7c4dff;--accent2:#6535e8;--text:#1e1535;--text-dim:#5c4f80;--text-muted:#9b8ec4;--green:#22c55e;--green-bg:#f0fdf4;--green-bd:#bbf7d0;--red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;--yellow:#f59e0b;--yellow-bg:#fffbeb;--yellow-bd:#fde68a;--blue:#3b82f6;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;--radius:10px;--shadow:0 1px 4px rgba(124,77,255,.08),0 4px 16px rgba(124,77,255,.06)}
+:root{--bg:#f5f3fa;--surface:#fff;--surface2:#ede9f8;--border:#ddd6f3;--accent:#7c4dff;--accent2:#6535e8;--text:#1e1535;--text-dim:#5c4f80;--text-muted:#9b8ec4;--green:#22c55e;--green-bg:#f0fdf4;--green-bd:#bbf7d0;--red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;--radius:12px;--shadow:0 2px 12px rgba(124,77,255,.08)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(124,77,255,.08)}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(124,77,255,.08)}
 .logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#7c4dff,#a78bfa);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.hright{display:flex;align-items:center;gap:10px}
-.clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);letter-spacing:1px}
+.hright{display:flex;align-items:center;gap:12px}
 .conn-pill{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
 .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted)}
 .conn-dot.online{background:var(--green);box-shadow:0 0 5px rgba(34,197,94,.5)}
 .conn-text{font-size:11px;color:var(--text-dim);font-weight:600}
+.clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);letter-spacing:1px}
 .div{width:1px;height:18px;background:var(--border)}
 .btn{border:none;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
-.btn-primary{background:var(--accent);color:#fff;padding:9px 16px;font-size:14px}
+.btn-primary{background:var(--accent);color:#fff;padding:12px 24px;font-size:15px;width:100%;justify-content:center;border-radius:12px}
 .btn-primary:hover{background:var(--accent2)}
 .btn-sm{padding:5px 10px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
 .btn-sm:hover{background:var(--surface2);color:var(--accent)}
-.btn-call{background:var(--accent);color:#fff;padding:5px 12px;font-size:12px}
-.btn-call:hover{background:var(--accent2)}
-.btn-call:disabled{background:#c4b5fd;cursor:not-allowed}
-.btn-done{background:var(--green-bg);color:#16a34a;border:1px solid var(--green-bd);padding:5px 12px;font-size:12px}
-.btn-done:hover{background:#dcfce7}
-.btn-del{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);padding:5px 10px;font-size:12px}
-.btn-del:hover{background:#fee2e2}
-.btn-edit{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);padding:5px 10px;font-size:12px}
-.btn-edit:hover{background:#dbeafe}
-.layout{display:grid;grid-template-columns:400px 1fr;height:calc(100vh - 60px)}
-.lpanel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.ph{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.pt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)}
-.badge{font-family:'IBM Plex Mono',monospace;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
-.add-form{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.ft{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px}
-.fr{display:flex;gap:7px;margin-bottom:8px}
-.ig{display:flex;flex-direction:column;gap:3px;flex:1}
-.ig label{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-input,select{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;padding:7px 9px;width:100%;outline:none;transition:border-color .15s}
+
+.page{max-width:600px;margin:0 auto;padding:28px 20px}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px}
+.field{margin-bottom:18px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+input,select{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;padding:10px 13px;width:100%;outline:none;transition:border-color .15s}
 input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,77,255,.1)}
 input::placeholder{color:var(--text-muted)}
-.piw{display:flex;gap:5px;align-items:flex-end}
-.pc{width:34px!important;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-transform:uppercase;padding:7px 3px}
-.ps{color:var(--text-muted);font-size:16px;padding-bottom:5px}
-.pn{width:34px!important;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;padding:7px 3px}
-.qlist{flex:1;overflow-y:auto;padding:10px}
-.qlist::-webkit-scrollbar{width:4px}
-.qlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.qi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:7px;transition:all .15s;box-shadow:var(--shadow)}
-.qi:hover{border-color:#c4b5fd}
-.qi.s-calling{border-color:var(--accent);box-shadow:0 0 0 2px rgba(124,77,255,.15)}
-.qi.s-inspecting{border-color:var(--yellow);background:var(--yellow-bg)}
-.qi.s-passed{border-color:var(--green);background:var(--green-bg)}
-.qi.s-failed{border-color:var(--red);background:var(--red-bg)}
-.qi.s-done{opacity:.4}
-.qim{padding:10px 13px;display:flex;align-items:center;gap:9px}
-.qnum{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;color:var(--text-muted);min-width:32px}
-.qi.s-calling .qnum{color:var(--accent)}
-.qinfo{flex:1}
-.qplate{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;letter-spacing:2px;display:flex;gap:2px;align-items:center;flex-wrap:wrap}
-.pl{color:var(--text)}.pn2{color:var(--accent)}
-.qmeta{font-size:11px;color:var(--text-muted);margin-top:3px;display:flex;gap:6px;align-items:center}
-.qzone{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--text-dim);white-space:nowrap}
-.qacts{display:flex;gap:5px;padding:0 13px 9px;flex-wrap:wrap}
-.sb{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
-.sb-w{background:var(--surface2);color:var(--text-muted)}
-.sb-i{background:var(--yellow-bg);color:#b45309;border:1px solid var(--yellow-bd)}
-.sb-p{background:var(--green-bg);color:#16a34a;border:1px solid var(--green-bd)}
-.sb-f{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
-.sb-c{background:rgba(124,77,255,.1);color:var(--accent);border:1px solid rgba(124,77,255,.2)}
-.sb-d{background:#f1f5f9;color:#94a3b8}
-.rpanel{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
-.ncalling{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative}
-.ncalling::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(124,77,255,.06) 0%,transparent 65%);pointer-events:none}
-.clab{font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:18px}
-.cnum{font-family:'IBM Plex Mono',monospace;font-size:clamp(44px,7vw,76px);font-weight:700;color:var(--text-muted);margin-bottom:6px}
-.cnum.active{color:var(--accent)}
-.cplates{display:flex;align-items:center;gap:6px;margin:14px 0 18px;flex-wrap:wrap;justify-content:center}
-.cpc{font-family:'IBM Plex Mono',monospace;font-size:clamp(34px,5.5vw,60px);font-weight:700;width:clamp(40px,5.5vw,66px);height:clamp(50px,7vw,82px);display:flex;align-items:center;justify-content:center;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--text-muted);transition:all .3s;box-shadow:var(--shadow)}
-.cpc.ll{color:var(--text);border-color:#c4b5fd}
-.cpc.ln{color:var(--accent);border-color:#c4b5fd}
-.cpc.cur{transform:scale(1.08);box-shadow:0 0 0 3px rgba(124,77,255,.25),0 8px 24px rgba(124,77,255,.15);border-color:var(--accent)}
-.cpc.cur.l{color:var(--accent2)}.cpc.cur.n{color:var(--accent2)}
-.czone{font-size:clamp(14px,2.2vw,20px);font-weight:700;color:var(--text-dim);margin-bottom:7px;padding:7px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;box-shadow:var(--shadow)}
-.cprov{font-size:13px;color:var(--text-muted)}
-.unbar{background:var(--surface);border-top:1px solid var(--border);padding:12px 22px}
-.unt{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
-.unlist{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
-.uni{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 11px;flex-shrink:0;display:flex;align-items:center;gap:7px}
-.unnum{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted)}
-.unplate{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px}
-.unplate .l{color:var(--text)}.unplate .n{color:var(--accent)}
-.sr{display:flex;align-items:center;gap:7px}
-.sl{font-size:10px;color:var(--text-muted);font-weight:700;white-space:nowrap}
-.sv{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);min-width:24px;text-align:right}
-input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none;padding:0;width:100%;border:none;box-shadow:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface)}
-.mo{display:none;position:fixed;inset:0;background:rgba(30,21,53,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.mo.open{display:flex}
-.modal{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;width:430px;max-width:92vw;box-shadow:0 8px 40px rgba(124,77,255,.15)}
-.mtitle{font-size:15px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
-.macts{display:flex;gap:7px;justify-content:flex-end;margin-top:18px;padding-top:12px;border-top:1px solid var(--border)}
-.toast{position:fixed;bottom:22px;right:22px;background:var(--accent);color:#fff;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(124,77,255,.3)}
-.toast.show{transform:translateY(0);opacity:1}
-.empty{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px;line-height:2.2}
-.eicon{font-size:30px;margin-bottom:7px;opacity:.35}
-.idle{text-align:center;color:var(--text-muted)}
-.idle .ii{font-size:44px;opacity:.2;margin-bottom:10px}
-.idle p{font-size:14px}
-.zrow{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;margin-bottom:6px}
-.stag{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--text-dim);cursor:pointer;transition:all .15s;user-select:none}
-.stag:hover{border-color:#c4b5fd;color:var(--accent)}
+.piw{display:flex;gap:6px;align-items:flex-end}
+.pc{width:46px!important;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;text-transform:uppercase;padding:10px 4px}
+.ps{color:var(--text-muted);font-size:18px;padding-bottom:8px}
+.pn{width:40px!important;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;padding:10px 3px}
+
+.svc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px}
+.stag{display:flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;user-select:none}
 .stag input[type=checkbox]{display:none}
-.stag:has(input:checked){background:rgba(124,77,255,.12);border-color:var(--accent);color:var(--accent)}
-/* SERVICE TYPE BADGE */
-.stype{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
-.stype-insp{background:rgba(124,77,255,.12);color:var(--accent);border:1px solid rgba(124,77,255,.25)}
-.stype-reg{background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.25)}
-/* PHOTO UPLOAD */
-.photo-upload-wrap{margin-top:8px}
-.photo-label{display:flex;align-items:center;gap:7px;cursor:pointer;background:var(--surface2);border:1.5px dashed var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text-muted);font-weight:600;transition:all .15s}
-.photo-label:hover{border-color:var(--accent);color:var(--accent)}
-.photo-preview{width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:6px;display:none}
-.photo-uploading{font-size:11px;color:var(--text-muted);margin-top:4px;display:none}
-/* INSPECTOR photo */
-.doc-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer}
-.doc-img:hover{opacity:.85}
+.stag-label{font-size:13px;font-weight:600;color:var(--text-dim)}
+.stag:has(input:checked){background:rgba(124,77,255,.08);border-color:var(--accent)}
+.stag:has(input:checked) .stag-label{color:var(--accent)}
+
+.photo-area{background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:18px}
+.photo-area:hover{border-color:#c4b5fd;background:var(--surface2)}
+.photo-area.has-photo{border-style:solid;border-color:var(--accent);background:rgba(124,77,255,.04)}
+.photo-preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;display:none;margin-bottom:8px}
+.photo-area.has-photo .photo-preview{display:block}
+.photo-area.has-photo .ph-placeholder{display:none}
+.ph-placeholder .ph-icon{font-size:32px;margin-bottom:8px;opacity:.4}
+.ph-placeholder p{font-size:13px;color:var(--text-muted)}
+
+.queue-count{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.qc-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--accent)}
+.qc-label{font-size:13px;color:var(--text-muted);font-weight:600}
+.qc-next{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+.next-num-wrap{display:flex;align-items:center;gap:8px;margin-left:auto}
+.next-num-input{width:60px!important;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center;padding:6px 8px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);color:var(--accent)}
+
+.actions-bar{display:flex;gap:10px;margin-top:8px}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);padding:10px 16px;font-size:13px;border-radius:10px;width:auto}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(124,77,255,.3)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.green{background:#22c55e}
+.toast.red{background:#ef4444}
+
+.zone-modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,21,53,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.zone-modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;width:440px;max-width:92vw;box-shadow:0 8px 40px rgba(124,77,255,.15)}
+.mtitle{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.macts{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.zrow{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px}
 </style>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="VNservice">
-  <meta name="theme-color" content="#1a6fe8">
 </head>
 <body>
 <header>
-  <div class="logo"><div class="logo-icon">🚗</div>ห้องควบคุม — สถานตรวจสภาพรถ</div>
+  <div class="logo"><div class="logo-icon">🚗</div>ห้องควบคุม — VNservice</div>
   <div class="hright">
     <div class="conn-pill"><div class="conn-dot" id="cdot"></div><span class="conn-text" id="clab">กำลังเชื่อมต่อ...</span></div>
     <div class="div"></div>
-    <button class="btn btn-sm" onclick="openZoneModal()">⚙️ จุดรับรถ</button>
-    <div class="div"></div>
     <div class="clock" id="clock">--:--:--</div>
     <div class="div"></div>
-    <button class="btn btn-sm" onclick="clearDone()">ล้างเสร็จแล้ว</button>
+    <button class="btn btn-sm" onclick="openZoneModal()">⚙️ จุดรับรถ</button>
     <div class="div"></div>
-    <button class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border-color:#fecaca" onclick="clearAllEndOfDay()">🗑 ล้างข้อมูลสิ้นวัน</button>
+    <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border-color:var(--red-bd)" onclick="clearAllEndOfDay()">🗑 สิ้นวัน</button>
   </div>
 </header>
-<div class="layout">
-  <div class="lpanel">
-    <div class="ph">
-      <span class="pt">รายการคิว</span>
-      <div style="display:flex;align-items:center;gap:7px">
-        <span style="font-size:10px;color:var(--text-muted);font-weight:700">คิวถัดไป</span>
-        <input type="number" id="nni" min="1" max="9999" value="1" onchange="updateNextNum(this.value)" style="width:52px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;text-align:center;padding:4px 5px;border-radius:7px;background:var(--surface2);border:1.5px solid var(--border);color:var(--accent)">
-        <span class="badge" id="qcount">0</span>
-      </div>
-    </div>
-    <div class="add-form">
-      <div class="ft">เพิ่มคิวใหม่</div>
-      <div class="fr">
-        <div class="ig">
-          <label>ทะเบียนรถ</label>
-          <div class="piw">
-            <input class="pc" id="c1" maxlength="1" placeholder="ก/1" oninput="mnMixed(this,'c2')">
-            <input class="pc" id="c2" maxlength="1" placeholder="ข/2" oninput="mnMixed(this,'c3')">
-            <input class="pc" id="c3" maxlength="1" placeholder="ค/3" oninput="mnMixed(this,'n1')">
-            <span class="ps">–</span>
-            <input class="pn" id="n1" maxlength="1" placeholder="1" oninput="mn(this,'n2')" type="tel">
-            <input class="pn" id="n2" maxlength="1" placeholder="2" oninput="mn(this,'n3')" type="tel">
-            <input class="pn" id="n3" maxlength="1" placeholder="3" oninput="mn(this,'n4')" type="tel">
-            <input class="pn" id="n4" maxlength="1" placeholder="4" type="tel">
-          </div>
-        </div>
-      </div>
-      <div class="fr">
-        <div class="ig"><label>จังหวัด</label><select id="province"><option value="">-- เลือกจังหวัด --</option><option>กรุงเทพมหานคร</option><option>กระบี่</option><option>กาญจนบุรี</option><option>กาฬสินธุ์</option><option>กำแพงเพชร</option><option>ขอนแก่น</option><option>จันทบุรี</option><option>ฉะเชิงเทรา</option><option>ชลบุรี</option><option>ชัยนาท</option><option>ชัยภูมิ</option><option>ชุมพร</option><option>เชียงราย</option><option>เชียงใหม่</option><option>ตรัง</option><option>ตราด</option><option>ตาก</option><option>นครนายก</option><option>นครปฐม</option><option>นครพนม</option><option>นครราชสีมา</option><option>นครศรีธรรมราช</option><option>นครสวรรค์</option><option>นนทบุรี</option><option>นราธิวาส</option><option>น่าน</option><option>บึงกาฬ</option><option>บุรีรัมย์</option><option>ปทุมธานี</option><option>ประจวบคีรีขันธ์</option><option>ปราจีนบุรี</option><option>ปัตตานี</option><option>พระนครศรีอยุธยา</option><option>พะเยา</option><option>พังงา</option><option>พัทลุง</option><option>พิจิตร</option><option>พิษณุโลก</option><option>เพชรบุรี</option><option>เพชรบูรณ์</option><option>แพร่</option><option>ภูเก็ต</option><option>มหาสารคาม</option><option>มุกดาหาร</option><option>แม่ฮ่องสอน</option><option>ยโสธร</option><option>ยะลา</option><option>ร้อยเอ็ด</option><option>ระนอง</option><option>ระยอง</option><option>ราชบุรี</option><option>ลพบุรี</option><option>ลำปาง</option><option>ลำพูน</option><option>เลย</option><option>ศรีสะเกษ</option><option>สกลนคร</option><option>สงขลา</option><option>สตูล</option><option>สมุทรปราการ</option><option>สมุทรสงคราม</option><option>สมุทรสาคร</option><option>สระแก้ว</option><option>สระบุรี</option><option>สิงห์บุรี</option><option>สุโขทัย</option><option>สุพรรณบุรี</option><option>สุราษฎร์ธานี</option><option>สุรินทร์</option><option>หนองคาย</option><option>หนองบัวลำภู</option><option>อ่างทอง</option><option>อำนาจเจริญ</option><option>อุดรธานี</option><option>อุตรดิตถ์</option><option>อุทัยธานี</option><option>อุบลราชธานี</option></select></div>
-        <div class="ig" style="max-width:120px"><label>จุดรับรถ</label><select id="zone"></select></div>
-      </div>
-      <div class="fr">
-        <div class="ig">
-          <label>ประเภทบริการ (เลือกได้หลายอย่าง)</label>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px" id="stype-wrap">
-            <label class="stag"><input type="checkbox" value="inspect"> 🔍 ตรวจสภาพ</label>
-            <label class="stag"><input type="checkbox" value="register"> 📋 ต่อทะเบียน</label>
-            <label class="stag"><input type="checkbox" value="newreg"> 🆕 จดทะเบียนใหม่</label>
-            <label class="stag"><input type="checkbox" value="tax"> 💰 ภาษีขาด&gt;1ปี</label>
-            <label class="stag"><input type="checkbox" value="transfer"> 🔄 โอน</label>
-            <label class="stag"><input type="checkbox" value="province"> 📍 แจ้งย้ายจังหวัด</label>
-          </div>
-        </div>
-      </div>
-      <div class="photo-upload-wrap">
-        <label class="photo-label" for="doc-photo">📷 ถ่าย/อัปโหลดรูปเอกสาร (ไม่บังคับ)</label>
-        <input type="file" id="doc-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
-        <img id="photo-preview" class="photo-preview" alt="ตัวอย่างเอกสาร">
-        <div class="photo-uploading" id="photo-uploading">⏳ กำลังอัปโหลด...</div>
-      </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="addQueue()">+ เพิ่มคิว</button>
-    </div>
-    <div class="qlist" id="qlist"><div class="empty"><div class="eicon">📋</div><p>ยังไม่มีคิว</p></div></div>
-  </div>
-  <div class="rpanel">
-    <div class="ncalling" id="ncalling"><div class="idle"><div class="ii">🔔</div><p>ยังไม่มีการเรียกคิว</p></div></div>
-    <div class="unbar">
-      <div class="unt">✅ ผ่านการตรวจแล้ว — รอเรียกรับรถ</div>
-      <div class="unlist" id="unlist"><span style="font-size:12px;color:var(--text-muted)">—</span></div>
-    </div>
-  </div>
-</div>
 
-<!-- EDIT MODAL -->
-<div class="mo" id="em">
-  <div class="modal">
-    <div class="mtitle">✏️ แก้ไขข้อมูลคิว</div>
-    <input type="hidden" id="eid">
-    <div class="fr" style="margin-bottom:10px"><div class="ig" style="max-width:100px"><label>ลำดับคิว</label><input type="number" id="eqn" min="1" max="999" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center"></div></div>
-    <div class="fr"><div class="ig"><label>ทะเบียนรถ</label><div class="piw"><input class="pc" id="ec1" maxlength="1" oninput="mnMixed(this,'ec2')"><input class="pc" id="ec2" maxlength="1" oninput="mnMixed(this,'ec3')"><input class="pc" id="ec3" maxlength="1" oninput="mnMixed(this,'en1')"><span class="ps">–</span><input class="pn" id="en1" maxlength="1" oninput="mn(this,'en2')" type="tel"><input class="pn" id="en2" maxlength="1" oninput="mn(this,'en3')" type="tel"><input class="pn" id="en3" maxlength="1" oninput="mn(this,'en4')" type="tel"><input class="pn" id="en4" maxlength="1" type="tel"></div></div></div>
-    <div class="fr" style="margin-top:9px">
-      <div class="ig"><label>จังหวัด</label><select id="ep"><option value="">-- เลือกจังหวัด --</option><option>กรุงเทพมหานคร</option><option>ชลบุรี</option><option>เชียงใหม่</option><option>นนทบุรี</option><option>ปทุมธานี</option><option>พระนครศรีอยุธยา</option><option>ภูเก็ต</option><option>ระยอง</option><option>สมุทรปราการ</option><option>ขอนแก่น</option><option>นครราชสีมา</option><option>อุดรธานี</option><option>สงขลา</option><option>สุราษฎร์ธานี</option></select></div>
-      <div class="ig" style="max-width:120px"><label>จุดรับรถ</label><select id="ez"></select></div>
+<div class="page">
+  <!-- Queue counter -->
+  <div class="queue-count">
+    <div>
+      <div class="qc-num" id="q-count">0</div>
+      <div class="qc-label">คิวทั้งหมดวันนี้</div>
     </div>
-    <div class="macts"><button class="btn btn-sm" onclick="closeModal()">ยกเลิก</button><button class="btn btn-primary" style="padding:9px 18px" onclick="saveEdit()">บันทึก</button></div>
+    <div style="margin-left:24px">
+      <div class="qc-num" id="q-waiting" style="color:var(--text-muted)">0</div>
+      <div class="qc-label">รอตรวจ</div>
+    </div>
+    <div style="margin-left:24px">
+      <div class="qc-num" id="q-passed" style="color:var(--green)">0</div>
+      <div class="qc-label">ผ่านแล้ว</div>
+    </div>
+    <div style="margin-left:24px">
+      <div class="qc-num" id="q-failed" style="color:var(--red)">0</div>
+      <div class="qc-label">ไม่ผ่าน</div>
+    </div>
+    <div class="next-num-wrap">
+      <span style="font-size:11px;color:var(--text-muted);font-weight:700">คิวถัดไป</span>
+      <input type="number" class="next-num-input" id="nni" min="1" max="9999" value="1" onchange="updateNextNum(this.value)">
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="field">
+    <div class="section-label">ทะเบียนรถ</div>
+    <div class="piw">
+      <input class="pc" id="c1" maxlength="1" placeholder="ก" oninput="mnM(this,'c2')">
+      <input class="pc" id="c2" maxlength="1" placeholder="ข" oninput="mnM(this,'c3')">
+      <input class="pc" id="c3" maxlength="1" placeholder="ค" oninput="mnM(this,'n1')">
+      <span class="ps">–</span>
+      <input class="pn" id="n1" maxlength="1" placeholder="1" oninput="mn(this,'n2')" type="tel">
+      <input class="pn" id="n2" maxlength="1" placeholder="2" oninput="mn(this,'n3')" type="tel">
+      <input class="pn" id="n3" maxlength="1" placeholder="3" oninput="mn(this,'n4')" type="tel">
+      <input class="pn" id="n4" maxlength="1" placeholder="4" type="tel">
+    </div>
+  </div>
+
+  <div class="row2">
+    <div>
+      <div class="section-label">จังหวัด</div>
+      <select id="province">
+        <option value="">-- เลือกจังหวัด --</option>
+        <option>กรุงเทพมหานคร</option><option>กระบี่</option><option>กาญจนบุรี</option><option>กาฬสินธุ์</option><option>กำแพงเพชร</option><option>ขอนแก่น</option><option>จันทบุรี</option><option>ฉะเชิงเทรา</option><option>ชลบุรี</option><option>ชัยนาท</option><option>ชัยภูมิ</option><option>ชุมพร</option><option>เชียงราย</option><option>เชียงใหม่</option><option>ตรัง</option><option>ตราด</option><option>ตาก</option><option>นครนายก</option><option>นครปฐม</option><option>นครพนม</option><option>นครราชสีมา</option><option>นครศรีธรรมราช</option><option>นครสวรรค์</option><option>นนทบุรี</option><option>นราธิวาส</option><option>น่าน</option><option>บึงกาฬ</option><option>บุรีรัมย์</option><option>ปทุมธานี</option><option>ประจวบคีรีขันธ์</option><option>ปราจีนบุรี</option><option>ปัตตานี</option><option>พระนครศรีอยุธยา</option><option>พะเยา</option><option>พังงา</option><option>พัทลุง</option><option>พิจิตร</option><option>พิษณุโลก</option><option>เพชรบุรี</option><option>เพชรบูรณ์</option><option>แพร่</option><option>ภูเก็ต</option><option>มหาสารคาม</option><option>มุกดาหาร</option><option>แม่ฮ่องสอน</option><option>ยโสธร</option><option>ยะลา</option><option>ร้อยเอ็ด</option><option>ระนอง</option><option>ระยอง</option><option>ราชบุรี</option><option>ลพบุรี</option><option>ลำปาง</option><option>ลำพูน</option><option>เลย</option><option>ศรีสะเกษ</option><option>สกลนคร</option><option>สงขลา</option><option>สตูล</option><option>สมุทรปราการ</option><option>สมุทรสงคราม</option><option>สมุทรสาคร</option><option>สระแก้ว</option><option>สระบุรี</option><option>สิงห์บุรี</option><option>สุโขทัย</option><option>สุพรรณบุรี</option><option>สุราษฎร์ธานี</option><option>สุรินทร์</option><option>หนองคาย</option><option>หนองบัวลำภู</option><option>อ่างทอง</option><option>อำนาจเจริญ</option><option>อุดรธานี</option><option>อุตรดิตถ์</option><option>อุทัยธานี</option><option>อุบลราชธานี</option>
+      </select>
+    </div>
+    <div>
+      <div class="section-label">จุดรับรถ</div>
+      <select id="zone"></select>
+    </div>
+  </div>
+
+  <div class="section-label">ประเภทบริการ</div>
+  <div class="svc-grid" id="svc-wrap">
+    <label class="stag"><input type="checkbox" value="inspect"><span class="stag-label">🔍 ตรวจสภาพ</span></label>
+    <label class="stag"><input type="checkbox" value="register"><span class="stag-label">📋 ต่อทะเบียน</span></label>
+    <label class="stag"><input type="checkbox" value="newreg"><span class="stag-label">🆕 จดทะเบียนใหม่</span></label>
+    <label class="stag"><input type="checkbox" value="tax"><span class="stag-label">💰 ภาษีขาด&gt;1ปี</span></label>
+    <label class="stag"><input type="checkbox" value="transfer"><span class="stag-label">🔄 โอน</span></label>
+    <label class="stag"><input type="checkbox" value="province"><span class="stag-label">📍 แจ้งย้ายจังหวัด</span></label>
+  </div>
+
+  <div class="section-label">รูปเอกสาร (ไม่บังคับ)</div>
+  <div class="photo-area" id="photo-area" onclick="document.getElementById('doc-photo').click()">
+    <img class="photo-preview" id="photo-preview" alt="เอกสาร">
+    <div class="ph-placeholder">
+      <div class="ph-icon">📷</div>
+      <p>แตะหรือคลิกเพื่อถ่าย/อัปโหลดรูปเอกสาร</p>
+    </div>
+    <input type="file" id="doc-photo" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+  </div>
+
+  <button class="btn btn-primary" onclick="addQueue()">📤 ส่งข้อมูลให้ช่าง</button>
+
+  <div class="actions-bar">
+    <button class="btn btn-sm" onclick="clearDone()" style="flex:1;justify-content:center;padding:10px">🧹 ล้างเสร็จแล้ว</button>
   </div>
 </div>
 
 <!-- ZONE MODAL -->
-<div class="mo" id="zm">
-  <div class="modal" style="width:450px">
+<div class="zone-modal-overlay" id="zm">
+  <div class="modal">
     <div class="mtitle">⚙️ จัดการจุดรับรถ</div>
     <div id="zle" style="max-height:260px;overflow-y:auto;margin-bottom:12px"></div>
-    <div style="display:flex;gap:7px"><input type="text" id="zni" placeholder="ชื่อจุดรับรถใหม่" style="flex:1" onkeydown="if(event.key==='Enter')addZone()"><button class="btn btn-primary" style="padding:9px 14px" onclick="addZone()">+ เพิ่ม</button></div>
+    <div style="display:flex;gap:7px">
+      <input type="text" id="zni" placeholder="ชื่อจุดรับรถใหม่" style="flex:1" onkeydown="if(event.key==='Enter')addZone()">
+      <button class="btn btn-primary" style="width:auto;padding:10px 14px" onclick="addZone()">+ เพิ่ม</button>
+    </div>
     <div class="macts"><button class="btn btn-sm" onclick="closeZoneModal()">ปิด</button></div>
   </div>
 </div>
@@ -251,289 +198,125 @@ import{getDatabase,ref,set,onValue}from"https://www.gstatic.com/firebasejs/10.12
 const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-98245.firebaseapp.com",databaseURL:"https://create-98245-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"create-98245",storageBucket:"create-98245.firebasestorage.app",messagingSenderId:"490139130684",appId:"1:490139130684:web:a69bfbcb7e61dda952dc39"};
 const app=initializeApp(cfg),db=getDatabase(app);
 onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'ออฟไลน์';});
-window._push=()=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,ts:Date.now()});
-window._pushFull=(resetStats)=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,stats:resetStats,ts:Date.now()});
-
-// รับข้อมูลจาก Firebase (เมื่อช่างอัปเดตสถานะ)
+window._push=()=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,stats:window._stats,ts:Date.now()});
+window._pushFull=(st)=>set(ref(db,'queue_system'),{queues:[],nextNum:1,zones:window._z,calling:null,stats:st,ts:Date.now()});
 window._ignoreNext=false;
 onValue(ref(db,'queue_system'),snap=>{
   if(window._ignoreNext){window._ignoreNext=false;return;}
   const d=snap.val();if(!d)return;
-  const fbQueues=Array.isArray(d.queues)?d.queues:Object.values(d.queues||{});
-  fbQueues.forEach(fq=>{
-    const local=window._q.find(x=>x.id===fq.id);
+  const fbQ=Array.isArray(d.queues)?d.queues:Object.values(d.queues||{});
+  fbQ.forEach(fq=>{
+    const local=window._q?.find(x=>x.id===fq.id);
     if(local&&local.status!==fq.status){
-      local.status=fq.status;
-      local.note=fq.note||'';
-      if(fq.status==='passed') window._notify(`✅ คิว ${String(fq.num).padStart(2,'0')} ผ่านการตรวจแล้ว — กดเรียกได้เลย`,'green');
-      if(fq.status==='failed') window._notify(`❌ คิว ${String(fq.num).padStart(2,'0')} ไม่ผ่านการตรวจ — ${fq.note||'ไม่มีหมายเหตุ'}`,'red');
+      local.status=fq.status;local.note=fq.note||'';
+      if(fq.status==='passed')window._notify(`✅ คิว ${String(fq.num).padStart(2,'0')} ผ่านแล้ว`,'green');
+      if(fq.status==='failed')window._notify(`❌ คิว ${String(fq.num).padStart(2,'0')} ไม่ผ่าน — ${fq.note||''}`,'red');
+      if(fq.status==='calling')window._notify(`📢 คิว ${String(fq.num).padStart(2,'0')} กำลังเรียกลูกค้า`,'');
+      if(fq.status==='done')window._notify(`✔ คิว ${String(fq.num).padStart(2,'0')} รับรถแล้ว`,'');
     }
   });
-  window._renderAll();
+  window._renderStats();
 });
 </script>
+
 <script>
-let queues=[],nextNum=1,calInt=null,calId=null;
-let zones=['ลานจอดด้านหน้า','ด้านข้างของร้าน'];
+const CLOUD='db7jrlo6m',PRESET='QueueDoc';
+let queues=[],nextNum=1,calId=null,zones=['ลานจอดด้านหน้า','ด้านข้างของร้าน'];
+let pendingPhotoUrl='',stats={passed:0,failed:0,total:0};
 Object.defineProperty(window,'_q',{get:()=>queues});
 Object.defineProperty(window,'_nn',{get:()=>nextNum});
 Object.defineProperty(window,'_z',{get:()=>zones});
 Object.defineProperty(window,'_cid',{get:()=>calId});
-const push=()=>{
-  window._ignoreNext=true;
-  if(window._push)window._push();
-};
+Object.defineProperty(window,'_stats',{get:()=>stats});
+const push=()=>{window._ignoreNext=true;if(window._push)window._push();};
 const p2=n=>String(n).padStart(2,'0');
-window._renderAll=()=>renderAll();
-window._notify=function(msg,type){
-  const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.style.background=type==='red'?'#ef4444':type==='green'?'#22c55e':'var(--accent)';
-  el.classList.add('show');
-  clearTimeout(window._tt2);
-  window._tt2=setTimeout(()=>{el.classList.remove('show');el.style.background='';},4000);
-};
-function updateNextNum(v){const n=parseInt(v);if(!isNaN(n)&&n>=1)nextNum=n;document.getElementById('nni').value=nextNum;}
-function mn(el,nid){el.value=el.value.toUpperCase();if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
-// ช่อง 3 แรก รับได้ทั้งตัวอักษรและตัวเลข
-function mnMixed(el,nid){
-  // ถ้าเป็นตัวอักษรให้ uppercase ถ้าเป็นตัวเลขปล่อยไว้
-  if(el.value && !/^[0-9]$/.test(el.value)) el.value=el.value.toUpperCase();
-  if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();
-}
 
-// CLOUDINARY
-const CL_CLOUD='db7jrlo6m', CL_PRESET='QueueDoc';
-let pendingPhotoUrl='', pendingPhotoId='';
+function mn(el,nid){if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
+function mnM(el,nid){if(el.value&&!/^[0-9]$/.test(el.value))el.value=el.value.toUpperCase();if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
 
-function previewPhoto(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const prev=document.getElementById('photo-preview');
-    prev.src=e.target.result;prev.style.display='block';
-  };
-  reader.readAsDataURL(file);
-  uploadToCloudinary(file);
-}
+function updateNextNum(v){const n=parseInt(v);if(!isNaN(n)&&n>=1)nextNum=n;}
 
-function compressImage(file,cb){
-  const img=new Image(),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
-  const url=URL.createObjectURL(file);
-  img.onload=()=>{
-    const MAX=1200;let w=img.width,h=img.height;
-    if(w>MAX){h=h*(MAX/w);w=MAX;}
-    canvas.width=w;canvas.height=h;
-    ctx.drawImage(img,0,0,w,h);
-    canvas.toBlob(blob=>cb(blob),'image/jpeg',0.75);
-    URL.revokeObjectURL(url);
-  };
-  img.src=url;
-}
-
-function uploadToCloudinary(file){
-  const upEl=document.getElementById('photo-uploading');
-  upEl.style.display='block';
-  compressImage(file,blob=>{
-    const fd=new FormData();
-    fd.append('file',blob);
-    fd.append('upload_preset',CL_PRESET);
-    fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/image/upload`,{method:'POST',body:fd})
-      .then(r=>r.json())
-      .then(d=>{
-        pendingPhotoUrl=d.secure_url||'';
-        pendingPhotoId=d.public_id||'';
-        upEl.style.display='none';
-        toast('📷 อัปโหลดรูปเรียบร้อย');
-      })
-      .catch(()=>{upEl.style.display='none';toast('❌ อัปโหลดรูปไม่สำเร็จ');});
-  });
-}
-
-function deleteCloudinaryPhoto(publicId){
-  // ลบรูปผ่าน unsigned — ต้องใช้ server แต่ใช้ฟีเจอร์ auto-expire แทนได้
-  // ตั้ง Auto-delete ใน Cloudinary Console แทนครับ (Upload Preset → Folder settings)
-  console.log('Photo to delete:', publicId);
-}
-
-function clearPhotoForm(){
-  document.getElementById('doc-photo').value='';
-  document.getElementById('photo-preview').style.display='none';
-  document.getElementById('photo-preview').src='';
-  document.getElementById('photo-uploading').style.display='none';
-  pendingPhotoUrl='';pendingPhotoId='';
-}
-function rZS(){['zone','ez'].forEach(id=>{const s=document.getElementById(id);if(!s)return;const c=s.value;s.innerHTML=zones.map(z=>`<option${z===c?' selected':''}>${z}</option>`).join('');});}
+// ZONES
+function rZS(){['zone'].forEach(id=>{const s=document.getElementById(id);if(!s)return;const c=s.value;s.innerHTML=zones.map(z=>`<option${z===c?' selected':''}>${z}</option>`).join('');});}
 function openZoneModal(){rZLE();document.getElementById('zm').classList.add('open');}
 function closeZoneModal(){document.getElementById('zm').classList.remove('open');}
-function rZLE(){document.getElementById('zle').innerHTML=zones.map((z,i)=>`<div class="zrow"><span style="flex:1;font-size:13px">${z}</span><button class="btn btn-sm" onclick="mz(${i},-1)" ${i===0?'disabled':''} style="padding:3px 7px">↑</button><button class="btn btn-sm" onclick="mz(${i},1)" ${i===zones.length-1?'disabled':''} style="padding:3px 7px">↓</button><button class="btn btn-sm" onclick="ez2(${i})" style="padding:3px 7px">✏️</button><button class="btn btn-del" onclick="dz(${i})" style="padding:3px 7px">🗑</button></div>`).join('');}
-function addZone(){const inp=document.getElementById('zni'),name=inp.value.trim();if(!name)return;if(zones.includes(name)){toast('มีชื่อนี้แล้ว');return;}zones.push(name);inp.value='';rZS();rZLE();push();toast(`เพิ่ม "${name}"`);}
-function dz(i){if(zones.length<=1){toast('ต้องมีอย่างน้อย 1 จุด');return;}const n=zones.splice(i,1)[0];rZS();rZLE();push();toast(`ลบ "${n}"`);}
+function rZLE(){document.getElementById('zle').innerHTML=zones.map((z,i)=>`<div class="zrow"><span style="flex:1;font-size:13px">${z}</span><button class="btn btn-sm" onclick="mz(${i},-1)" ${i===0?'disabled':''}>↑</button><button class="btn btn-sm" onclick="mz(${i},1)" ${i===zones.length-1?'disabled':''}>↓</button><button class="btn btn-sm" style="color:var(--red)" onclick="dz(${i})">🗑</button></div>`).join('');}
+function addZone(){const inp=document.getElementById('zni'),name=inp.value.trim();if(!name)return;zones.push(name);inp.value='';rZS();rZLE();push();toast('เพิ่มแล้ว');}
+function dz(i){if(zones.length<=1){toast('ต้องมีอย่างน้อย 1 จุด');return;}zones.splice(i,1);rZS();rZLE();push();}
 function mz(i,d){const j=i+d;if(j<0||j>=zones.length)return;[zones[i],zones[j]]=[zones[j],zones[i]];rZS();rZLE();push();}
-function ez2(i){const o=zones[i],n=prompt('แก้ไขชื่อ:',o);if(!n||n.trim()===o)return;if(zones.includes(n.trim())){toast('มีชื่อนี้แล้ว');return;}queues.forEach(q=>{if(q.zone===o)q.zone=n.trim();});zones[i]=n.trim();rZS();rZLE();renderAll();push();}
+document.getElementById('zm').addEventListener('click',e=>{if(e.target===document.getElementById('zm'))closeZoneModal();});
 
-// QUEUE
+// PHOTO
+async function handlePhoto(input){
+  const file=input.files[0];if(!file)return;
+  const area=document.getElementById('photo-area');
+  document.getElementById('photo-preview').src=URL.createObjectURL(file);
+  area.classList.add('has-photo');
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),img=new Image();
+  img.onload=async()=>{
+    const maxW=800,maxH=800;let w=img.width,h=img.height;
+    if(w>maxW){h=h*maxW/w;w=maxW;}if(h>maxH){w=w*maxH/h;h=maxH;}
+    canvas.width=w;canvas.height=h;ctx.drawImage(img,0,0,w,h);
+    canvas.toBlob(async blob=>{
+      const fd=new FormData();fd.append('file',blob);fd.append('upload_preset',PRESET);
+      try{const r=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`,{method:'POST',body:fd});
+        const d=await r.json();pendingPhotoUrl=d.secure_url||'';
+      }catch(e){console.error(e);}
+    },'image/jpeg',0.7);
+  };
+  img.src=URL.createObjectURL(file);
+}
+function clearPhotoForm(){
+  pendingPhotoUrl='';
+  document.getElementById('photo-area').classList.remove('has-photo');
+  document.getElementById('photo-preview').src='';
+  document.getElementById('doc-photo').value='';
+}
+
+// ADD
 function addQueue(){
   const c1=document.getElementById('c1').value.trim().toUpperCase(),c2=document.getElementById('c2').value.trim().toUpperCase(),c3=document.getElementById('c3').value.trim().toUpperCase();
   const n1=document.getElementById('n1').value.trim(),n2=document.getElementById('n2').value.trim(),n3=document.getElementById('n3').value.trim(),n4=document.getElementById('n4').value.trim();
   const prov=document.getElementById('province').value,zone=document.getElementById('zone').value;
-  // อ่านค่า checkbox หลายตัว
-  const services=[...document.querySelectorAll('#stype-wrap input:checked')].map(x=>x.value);
+  const services=[...document.querySelectorAll('#svc-wrap input:checked')].map(x=>x.value);
   if(!c1&&!n1){toast('กรุณากรอกทะเบียนรถ');return;}
   if(!prov){toast('กรุณาเลือกจังหวัด');return;}
   if(!services.length){toast('กรุณาเลือกประเภทบริการ');return;}
-  if(pendingPhotoUrl===''&&document.getElementById('doc-photo').files.length>0){
-    toast('⏳ รอรูปอัปโหลดเสร็จก่อน');return;
-  }
-  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting',services,photoUrl:pendingPhotoUrl,photoId:pendingPhotoId};
-  queues.push(q);renderAll();
+  const q={id:Date.now(),num:nextNum++,chars:[c1,c2,c3],nums:[n1,n2,n3,n4],province:prov,zone,status:'waiting',services,photoUrl:pendingPhotoUrl};
+  queues.push(q);
   ['c1','c2','c3','n1','n2','n3','n4'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('c1').focus();
-  document.getElementById('nni').value=nextNum;
-  // reset checkboxes
-  document.querySelectorAll('#stype-wrap input').forEach(x=>x.checked=false);
+  document.querySelectorAll('#svc-wrap input').forEach(x=>x.checked=false);
   clearPhotoForm();
-  push();toast(`เพิ่มคิว ${p2(q.num)} — ${services.map(s=>SVC[s]||s).join(', ')}`);
+  document.getElementById('nni').value=nextNum;
+  push();renderStats();toast(`✅ ส่งคิว ${p2(q.num)} ให้ช่างแล้ว`,'green');
+  document.getElementById('c1').focus();
 }
-function callQueue(id){
-  const q=queues.find(x=>x.id===id);if(!q||q.status==='done')return;
-  if(q.status!=='passed'){toast('⚠️ รอช่างตรวจผ่านก่อน');return;}
-  queues.forEach(x=>{if(x.status==='calling')x.status='passed';});
-  q.status='calling';calId=id;renderAll();animCal(q);announce(q);push();
-}
-function markDone(id){
-  const q=queues.find(x=>x.id===id);if(!q)return;
-  q.status='done';calId=null;if(calInt)clearInterval(calInt);
-  document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">✅</div><p>เรียกรับรถเรียบร้อย — คิว ${p2(q.num)}</p></div>`;
-  renderAll();push();
-}
-function delQ(id){queues=queues.filter(x=>x.id!==id);renderAll();push();}
-function clearDone(){queues=queues.filter(x=>x.status!=='done');renderAll();push();toast('ล้างเสร็จแล้ว');}
 
+function clearDone(){queues=queues.filter(x=>x.status!=='done');push();renderStats();toast('ล้างแล้ว');}
 function clearAllEndOfDay(){
-  if(!confirm('⚠️ ล้างข้อมูลทั้งหมดสิ้นวัน?\nรูปเอกสารและคิวทั้งหมดจะถูกลบถาวร'))return;
-  queues=[];calId=null;nextNum=1;
+  if(!confirm('⚠️ ล้างข้อมูลทั้งหมดสิ้นวัน?'))return;
+  queues=[];calId=null;nextNum=1;stats={passed:0,failed:0,total:0};
   document.getElementById('nni').value=1;
-  document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">🔔</div><p>ยังไม่มีการเรียกคิว</p></div>`;
-  renderAll();
-  // push พร้อม reset stats เป็น 0
   window._ignoreNext=true;
-  if(window._pushFull) window._pushFull({passed:0,failed:0,total:0});
-  else push();
-  toast('✅ ล้างข้อมูลสิ้นวันเรียบร้อย');
-}
-function openEdit(id){
-  const q=queues.find(x=>x.id===id);if(!q)return;
-  document.getElementById('eid').value=id;document.getElementById('eqn').value=q.num;
-  ['ec1','ec2','ec3'].forEach((id,i)=>document.getElementById(id).value=q.chars[i]||'');
-  ['en1','en2','en3','en4'].forEach((id,i)=>document.getElementById(id).value=q.nums[i]||'');
-  document.getElementById('ep').value=q.province;document.getElementById('ez').value=q.zone;
-  document.getElementById('em').classList.add('open');
-}
-function closeModal(){document.getElementById('em').classList.remove('open');}
-function saveEdit(){
-  const id=+document.getElementById('eid').value,q=queues.find(x=>x.id===id);if(!q)return;
-  const nn=parseInt(document.getElementById('eqn').value);
-  if(isNaN(nn)||nn<1){toast('ลำดับไม่ถูกต้อง');return;}
-  if(queues.find(x=>x.id!==id&&x.num===nn)){toast(`คิว ${p2(nn)} มีแล้ว`);return;}
-  q.num=nn;
-  q.chars=['ec1','ec2','ec3'].map(id=>document.getElementById(id).value.trim().toUpperCase());
-  q.nums=['en1','en2','en3','en4'].map(id=>document.getElementById(id).value.trim());
-  q.province=document.getElementById('ep').value;q.zone=document.getElementById('ez').value;
-  closeModal();renderAll();if(q.status==='calling')animCal(q);push();toast('บันทึกแล้ว');
+  if(window._pushFull)window._pushFull({passed:0,failed:0,total:0});
+  renderStats();toast('✅ ล้างสิ้นวันแล้ว');
 }
 
-// SERVICE LABELS
-const SVC={inspect:'🔍 ตรวจสภาพ',register:'📋 ต่อทะเบียน',newreg:'🆕 จดทะเบียนใหม่',tax:'💰 ภาษีขาด>1ปี',transfer:'🔄 โอน',province:'📍 แจ้งย้ายจังหวัด'};
-function svcTags(services){
-  if(!services||!services.length) return '<span style="font-size:10px;color:var(--text-muted)">—</span>';
-  return services.map(s=>`<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:rgba(124,77,255,.1);color:var(--accent);border:1px solid rgba(124,77,255,.2)">${SVC[s]||s}</span>`).join('');
+function renderStats(){
+  document.getElementById('q-count').textContent=queues.length;
+  document.getElementById('q-waiting').textContent=queues.filter(x=>x.status==='waiting').length;
+  document.getElementById('q-passed').textContent=queues.filter(x=>x.status==='passed').length;
+  document.getElementById('q-failed').textContent=queues.filter(x=>x.status==='failed').length;
 }
+window._renderStats=()=>renderStats();
+window._notify=function(msg,type){toast(msg,type);};
 
-// STATUS
-function sb(s){
-  const m={
-    waiting:['sb-w','⏳ รอตรวจ'],
-    inspecting:['sb-i','🔍 ตรวจอยู่'],
-    passed:['sb-p','✅ ผ่านแล้ว — รอเรียก'],
-    failed:['sb-f','❌ ไม่ผ่านการตรวจ'],
-    calling:['sb-c','📢 กำลังเรียก'],
-    done:['sb-d','✔ เรียบร้อยแล้ว']
-  };
-  const[c,l]=m[s]||['sb-w','—'];
-  return `<span class="sb ${c}">${l}</span>`;
-}
-
-// RENDER
-function renderAll(){rQL();rUN();document.getElementById('qcount').textContent=queues.filter(x=>x.status!=='done').length;}
-function rQL(){
-  const el=document.getElementById('qlist');
-  if(!queues.length){el.innerHTML=`<div class="empty"><div class="eicon">📋</div><p>ยังไม่มีคิว</p></div>`;return;}
-  el.innerHTML=queues.map(q=>`
-    <div class="qi s-${q.status}">
-      <div class="qim">
-        <div class="qnum">${p2(q.num)}</div>
-        <div class="qinfo">
-          <div class="qplate">${q.chars.filter(Boolean).map(c=>`<span class="pl">${c}</span>`).join('')}<span style="color:var(--text-muted);margin:0 2px">–</span>${q.nums.filter(Boolean).map(n=>`<span class="pn2">${n}</span>`).join('')}</div>
-          <div class="qmeta">${sb(q.status)}<span>${q.province||'—'}</span></div>
-          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${svcTags(q.services||[])}</div>
-          ${q.note&&q.status==='failed'?`<div style="font-size:11px;color:var(--red);margin-top:3px;padding:3px 7px;background:var(--red-bg);border-radius:5px;border-left:2px solid var(--red)">📝 ${q.note}</div>`:''}
-        </div>
-        <div class="qzone">${q.zone}</div>
-      </div>
-      <div class="qacts">
-        ${q.status==='passed'?`<button class="btn btn-call" onclick="callQueue(${q.id})">📢 เรียกรับรถ</button>`:''}
-        ${q.status==='calling'?`<button class="btn btn-done" onclick="markDone(${q.id})">✅ รับแล้ว</button>`:''}
-        ${q.status==='failed'?`<button class="btn btn-del" onclick="delQ(${q.id})" style="font-size:11px;padding:4px 9px">🗑 ลบ</button>`:''}
-        ${!['done','failed'].includes(q.status)?`<button class="btn btn-edit" onclick="openEdit(${q.id})">✏️</button>`:''}
-        ${q.status!=='done'&&q.status!=='failed'?`<button class="btn btn-del" onclick="delQ(${q.id})">🗑</button>`:''}
-      </div>
-    </div>`).join('');
-}
-function rUN(){
-  const passed=queues.filter(x=>x.status==='passed');
-  const el=document.getElementById('unlist');
-  if(!passed.length){el.innerHTML=`<span style="font-size:12px;color:var(--text-muted)">ยังไม่มีคิวผ่านการตรวจ</span>`;return;}
-  el.innerHTML=passed.slice(0,8).map(q=>`<div class="uni"><span class="unnum">${p2(q.num)}</span><span class="unplate">${q.chars.filter(Boolean).map(c=>`<span class="l">${c}</span>`).join('')}<span class="l">–</span>${q.nums.filter(Boolean).map(n=>`<span class="n">${n}</span>`).join('')}</span></div>`).join('');
-}
-
-// ANIMATE
-function animCal(q){
-  if(calInt)clearInterval(calInt);
-  const all=[...q.chars.filter(Boolean),...q.nums.filter(Boolean)];let i=-1;
-  const nc=document.getElementById('ncalling');nc.innerHTML=buildCD(q,-1);
-  calInt=setInterval(()=>{i++;if(i>=all.length){clearInterval(calInt);nc.innerHTML=buildCD(q,all.length);return;}nc.innerHTML=buildCD(q,i);},600);
-}
-function buildCD(q,ci){
-  const all=[...q.chars.filter(Boolean),...q.nums.filter(Boolean)],lc=q.chars.filter(Boolean).length,isL=i=>i<lc;
-  let boxes='';
-  all.forEach((ch,i)=>{
-    if(i===lc&&lc>0)boxes+=`<div style="font-family:'IBM Plex Mono';font-size:clamp(26px,4vw,46px);color:var(--text-muted);padding:0 4px">–</div>`;
-    let cls='cpc';if(i<ci)cls+=isL(i)?' ll':' ln';if(i===ci)cls+=' cur '+(isL(i)?'l':'n');
-    boxes+=`<div class="${cls}">${i<=ci?ch:''}</div>`;
-  });
-  return `<div class="clab">📢 กรุณารับรถ</div><div class="cnum active">คิวที่ ${p2(q.num)}</div><div class="cplates">${boxes}</div><div class="czone">📍 ${q.zone}</div><div class="cprov">${q.province}</div>`;
-}
-
-// AUDIO — chime เท่านั้น (เสียงพูดอยู่ใน display.html)
-let actx=null,aUnlocked=false;
-function uAudio(){if(aUnlocked)return;try{actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();aUnlocked=true;}catch(e){}}
-document.addEventListener('click',uAudio);
-function announce(q){} // ไม่ใช้แล้ว — เสียงอยู่ที่ display.html
-
-// CLOCK
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);
 document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false});
 
-// TOAST
-let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);}
+let tt;function toast(m,type){const el=document.getElementById('toast');el.textContent=m;el.className='toast show'+(type?' '+type:'');clearTimeout(tt);tt=setTimeout(()=>el.className='toast',3000);}
 
-// MODAL OUTSIDE
-document.getElementById('em').addEventListener('click',e=>{if(e.target===document.getElementById('em'))closeModal();});
-document.getElementById('zm').addEventListener('click',e=>{if(e.target===document.getElementById('zm'))closeZoneModal();});
-
-// INIT
-rZS();renderAll();
+rZS();renderStats();
 </script>
 </body>
 </html>
