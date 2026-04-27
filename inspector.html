@@ -19,7 +19,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .conn-text{font-size:11px;color:var(--text-dim);font-weight:600}
 .clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);letter-spacing:1px}
 .page{max-width:900px;margin:0 auto;padding:24px 20px}
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
 .stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
 .stat-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);line-height:1}
 .stat-label{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:600}
@@ -77,8 +77,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
   <div class="stats-bar">
     <div class="stat"><div class="stat-num" id="st-w">0</div><div class="stat-label">⏳ รอตรวจ</div></div>
     <div class="stat s-i"><div class="stat-num" id="st-i">0</div><div class="stat-label">🔍 กำลังตรวจ</div></div>
-    <div class="stat s-p"><div class="stat-num" id="st-p">0</div><div class="stat-label">✅ ผ่านแล้ว</div></div>
-    <div class="stat s-f"><div class="stat-num" id="st-f">0</div><div class="stat-label">❌ ไม่ผ่าน</div></div>
+    <div class="stat s-p"><div class="stat-num" id="st-p">0</div><div class="stat-label">✅ ผ่านแล้ว (วันนี้)</div></div>
+    <div class="stat s-f"><div class="stat-num" id="st-f">0</div><div class="stat-label">❌ ไม่ผ่าน (วันนี้)</div></div>
+    <div class="stat" style="border-color:var(--accent);background:rgba(124,77,255,.06)"><div class="stat-num" id="st-t" style="color:var(--accent)">0</div><div class="stat-label">🚗 รวมทั้งหมดวันนี้</div></div>
   </div>
   <div class="section-title">คิวรอตรวจสภาพ</div>
   <div class="cards" id="cards">
@@ -113,6 +114,7 @@ onValue(ref(db,'.info/connected'),s=>{
 
 // state ทั้งหมดอยู่ใน module นี้เลย ไม่ต้องพึ่ง window
 let state={queues:[],nextNum:1,zones:[],calling:null};
+let stats={passed:0,failed:0,total:0}; // นับสะสมทั้งวัน
 
 function save(){
   set(ref(db,'queue_system'),{
@@ -120,6 +122,7 @@ function save(){
     nextNum:state.nextNum,
     zones:state.zones,
     calling:state.calling||null,
+    stats:stats,
     ts:Date.now()
   });
 }
@@ -134,6 +137,12 @@ onValue(ref(db,'queue_system'),snap=>{
     zones:d.zones||[],
     calling:d.calling||null
   };
+  // โหลด stats จาก Firebase (ถ้ามี)
+  if(d.stats){
+    stats.passed=d.stats.passed||0;
+    stats.failed=d.stats.failed||0;
+    stats.total=d.stats.total||0;
+  }
   renderPage();
 });
 
@@ -152,6 +161,10 @@ window.setResult=function(id,result){
   const noteEl=document.getElementById('note-'+id);
   q.status=result;
   q.note=noteEl?noteEl.value.trim():'';
+  // บวก stats สะสม
+  if(result==='passed') stats.passed++;
+  if(result==='failed') stats.failed++;
+  stats.total++;
   save();
   toast(result==='passed'?`✅ คิว ${p2(q.num)} ผ่านการตรวจ`:`❌ คิว ${p2(q.num)} ไม่ผ่าน`);
 };
@@ -173,8 +186,9 @@ function renderPage(){
   const qs=state.queues;
   document.getElementById('st-w').textContent=qs.filter(x=>x.status==='waiting').length;
   document.getElementById('st-i').textContent=qs.filter(x=>x.status==='inspecting').length;
-  document.getElementById('st-p').textContent=qs.filter(x=>x.status==='passed').length;
-  document.getElementById('st-f').textContent=qs.filter(x=>x.status==='failed').length;
+  document.getElementById('st-p').textContent=stats.passed;   // ใช้ค่าสะสมแทน
+  document.getElementById('st-f').textContent=stats.failed;   // ใช้ค่าสะสมแทน
+  document.getElementById('st-t').textContent=stats.total;    // รวมทั้งหมด
 
   const active=qs.filter(x=>['waiting','inspecting','passed','failed'].includes(x.status));
   const el=document.getElementById('cards');

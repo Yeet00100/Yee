@@ -246,6 +246,7 @@ const cfg={apiKey:"AIzaSyCFc9wLwD0J9_GcXnJ2xzAVMjnPhVJmwqM",authDomain:"create-9
 const app=initializeApp(cfg),db=getDatabase(app);
 onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElementById('cdot').className='conn-dot'+(on?' online':'');document.getElementById('clab').textContent=on?'เชื่อมต่อแล้ว':'ออฟไลน์';});
 window._push=()=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,ts:Date.now()});
+window._pushFull=(resetStats)=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,stats:resetStats,ts:Date.now()});
 
 // รับข้อมูลจาก Firebase (เมื่อช่างอัปเดตสถานะ)
 window._ignoreNext=false;
@@ -405,11 +406,15 @@ function clearDone(){queues=queues.filter(x=>x.status!=='done');renderAll();push
 
 function clearAllEndOfDay(){
   if(!confirm('⚠️ ล้างข้อมูลทั้งหมดสิ้นวัน?\nรูปเอกสารและคิวทั้งหมดจะถูกลบถาวร'))return;
-  // ล้าง queues ทั้งหมด รูปใน Cloudinary จะหมดอายุอัตโนมัติตาม preset ที่ตั้งไว้
   queues=[];calId=null;nextNum=1;
   document.getElementById('nni').value=1;
   document.getElementById('ncalling').innerHTML=`<div class="idle"><div class="ii">🔔</div><p>ยังไม่มีการเรียกคิว</p></div>`;
-  renderAll();push();toast('✅ ล้างข้อมูลสิ้นวันเรียบร้อย');
+  renderAll();
+  // push พร้อม reset stats เป็น 0
+  window._ignoreNext=true;
+  if(window._pushFull) window._pushFull({passed:0,failed:0,total:0});
+  else push();
+  toast('✅ ล้างข้อมูลสิ้นวันเรียบร้อย');
 }
 function openEdit(id){
   const q=queues.find(x=>x.id===id);if(!q)return;
