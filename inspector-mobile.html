@@ -87,11 +87,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);fon
 </div>
 
 <div class="stats-row">
-  <div class="stat-mini"><div class="sm-num" id="st-w">0</div><div class="sm-label">⏳ รอ</div></div>
-  <div class="stat-mini s-i"><div class="sm-num" id="st-i">0</div><div class="sm-label">🔍 ตรวจ</div></div>
-  <div class="stat-mini s-p"><div class="sm-num" id="st-p">0</div><div class="sm-label">✅ ผ่าน</div></div>
-  <div class="stat-mini s-f"><div class="sm-num" id="st-f">0</div><div class="sm-label">❌ ไม่ผ่าน</div></div>
-  <div class="stat-mini s-t"><div class="sm-num" id="st-t">0</div><div class="sm-label">🚗 รวม</div></div>
+  <div class="stat-mini"><div class="sm-num" id="st-w">0</div><div class="sm-label">⏳ รอตรวจ</div></div>
+  <div class="stat-mini s-i"><div class="sm-num" id="st-i">0</div><div class="sm-label">🔍 กำลังตรวจ</div></div>
+  <div class="stat-mini s-p"><div class="sm-num" id="st-p">0</div><div class="sm-label">✅ ผ่านวันนี้</div></div>
+  <div class="stat-mini s-f"><div class="sm-num" id="st-f">0</div><div class="sm-label">❌ ไม่ผ่านวันนี้</div></div>
+  <div class="stat-mini s-t"><div class="sm-num" id="st-t">0</div><div class="sm-label">🚗 รวมวันนี้</div></div>
 </div>
 
 <div class="cards-scroll" id="cards">
@@ -110,7 +110,16 @@ onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElemen
 let state={queues:[],zones:[],calling:null,nextNum:1};
 let stats={passed:0,failed:0,total:0};
 
-function save(){set(ref(db,'queue_system'),{queues:state.queues,nextNum:state.nextNum||1,zones:state.zones,calling:state.calling||null,stats,ts:Date.now()});}
+function save(){
+  set(ref(db,'queue_system'),{
+    queues:state.queues,
+    nextNum:state.nextNum||1,
+    zones:state.zones,
+    calling:state.calling||null,
+    stats:{passed:stats.passed,failed:stats.failed,total:stats.total},
+    ts:Date.now()
+  });
+}
 
 onValue(ref(db,'queue_system'),snap=>{
   const d=snap.val();if(!d)return;
