@@ -148,7 +148,8 @@ onValue(ref(db,'queue_system'),snap=>{
     lastCal=calling;
   } else if(!calling){
     lastCal=null;
-    window._isPlaying=false;
+    // reset isPlaying เฉพาะเมื่อไม่ได้เล่นอยู่จริงๆ
+    if(!currentSource) window._isPlaying=false;
   }
 
   if(calling){
@@ -201,9 +202,6 @@ function playChime(cb){
   });
   setTimeout(()=>{cb&&cb();},1800);
 }
-const syn=window.speechSynthesis;let thV=null,vL=false;
-function lV(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
-if(syn){lV();syn.onvoiceschanged=lV;}
 // ── GAPLESS AUDIO — concat buffers เป็นก้อนเดียวแล้วเล่นครั้งเดียว ──
 const AUDIO_BASE = 'audio/';
 const audioCache = {};

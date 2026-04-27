@@ -248,18 +248,16 @@ onValue(ref(db,'.info/connected'),s=>{const on=s.val()===true;document.getElemen
 window._push=()=>set(ref(db,'queue_system'),{queues:window._q,nextNum:window._nn,zones:window._z,calling:window._cid||null,ts:Date.now()});
 
 // รับข้อมูลจาก Firebase (เมื่อช่างอัปเดตสถานะ)
-let _ignoreNext=false;
+window._ignoreNext=false;
 onValue(ref(db,'queue_system'),snap=>{
-  if(_ignoreNext){_ignoreNext=false;return;}
+  if(window._ignoreNext){window._ignoreNext=false;return;}
   const d=snap.val();if(!d)return;
-  // merge สถานะจาก firebase เข้า queues ที่มีอยู่
   const fbQueues=Array.isArray(d.queues)?d.queues:Object.values(d.queues||{});
   fbQueues.forEach(fq=>{
     const local=window._q.find(x=>x.id===fq.id);
     if(local&&local.status!==fq.status){
       local.status=fq.status;
       local.note=fq.note||'';
-      // แจ้งเตือนพนักงานเมื่อช่างอัปเดต
       if(fq.status==='passed') window._notify(`✅ คิว ${String(fq.num).padStart(2,'0')} ผ่านการตรวจแล้ว — กดเรียกได้เลย`,'green');
       if(fq.status==='failed') window._notify(`❌ คิว ${String(fq.num).padStart(2,'0')} ไม่ผ่านการตรวจ — ${fq.note||'ไม่มีหมายเหตุ'}`,'red');
     }
@@ -268,14 +266,14 @@ onValue(ref(db,'queue_system'),snap=>{
 });
 </script>
 <script>
-let queues=[],nextNum=1,calInt=null,sRate=0.82,sVol=1,calId=null;
-let zones=['ช่องตรวจ 1','ช่องตรวจ 2','ช่องตรวจ 3','ลานจอด A','ลานจอด B'];
+let queues=[],nextNum=1,calInt=null,calId=null;
+let zones=['ลานจอดด้านหน้า','ด้านข้างของร้าน'];
 Object.defineProperty(window,'_q',{get:()=>queues});
 Object.defineProperty(window,'_nn',{get:()=>nextNum});
 Object.defineProperty(window,'_z',{get:()=>zones});
 Object.defineProperty(window,'_cid',{get:()=>calId});
 const push=()=>{
-  _ignoreNext=true;
+  window._ignoreNext=true;
   if(window._push)window._push();
 };
 const p2=n=>String(n).padStart(2,'0');
@@ -289,8 +287,6 @@ window._notify=function(msg,type){
   window._tt2=setTimeout(()=>{el.classList.remove('show');el.style.background='';},4000);
 };
 function updateNextNum(v){const n=parseInt(v);if(!isNaN(n)&&n>=1)nextNum=n;document.getElementById('nni').value=nextNum;}
-function updateSpeed(v){sRate=parseFloat(v);document.getElementById('sv').textContent='×'+sRate.toFixed(1);}
-function updateVolume(v){sVol=parseFloat(v);document.getElementById('vv').textContent=Math.round(sVol*100)+'%';}
 function mn(el,nid){el.value=el.value.toUpperCase();if(el.value.length>=1&&nid)document.getElementById(nid)?.focus();}
 // ช่อง 3 แรก รับได้ทั้งตัวอักษรและตัวเลข
 function mnMixed(el,nid){
@@ -390,7 +386,7 @@ function addQueue(){
   // reset checkboxes
   document.querySelectorAll('#stype-wrap input').forEach(x=>x.checked=false);
   clearPhotoForm();
-  push();toast(`เพิ่มคิว ${p2(q.num)} — ${stype==='register'?'ต่อทะเบียน':'ตรวจสภาพ'}`);
+  push();toast(`เพิ่มคิว ${p2(q.num)} — ${services.map(s=>SVC[s]||s).join(', ')}`);
 }
 function callQueue(id){
   const q=queues.find(x=>x.id===id);if(!q||q.status==='done')return;
@@ -508,37 +504,11 @@ function buildCD(q,ci){
   return `<div class="clab">📢 กรุณารับรถ</div><div class="cnum active">คิวที่ ${p2(q.num)}</div><div class="cplates">${boxes}</div><div class="czone">📍 ${q.zone}</div><div class="cprov">${q.province}</div>`;
 }
 
-// AUDIO
+// AUDIO — chime เท่านั้น (เสียงพูดอยู่ใน display.html)
 let actx=null,aUnlocked=false;
 function uAudio(){if(aUnlocked)return;try{actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();aUnlocked=true;}catch(e){}}
 document.addEventListener('click',uAudio);
-function playChime(cb){
-  uAudio();if(!actx){cb&&cb();return;}if(actx.state==='suspended')actx.resume();
-  [{f:880,s:0,d:.35},{f:660,s:.4,d:.35},{f:880,s:.8,d:.35},{f:1100,s:1.2,d:.45}].forEach(({f,s,d})=>{
-    const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.type='sine';
-    o.frequency.setValueAtTime(f,actx.currentTime+s);g.gain.setValueAtTime(0,actx.currentTime+s);
-    g.gain.linearRampToValueAtTime(.55*sVol,actx.currentTime+s+.02);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+s+d);
-    o.start(actx.currentTime+s);o.stop(actx.currentTime+s+d+.05);
-  });
-  setTimeout(()=>{cb&&cb();},1800);
-}
-const syn=window.speechSynthesis;let thV=null,vL=false;
-function lVoices(){const v=syn?syn.getVoices():[];thV=v.find(x=>x.lang==='th-TH')||v.find(x=>x.lang?.startsWith('th'))||v.find(x=>x.lang?.startsWith('en'))||v[0]||null;vL=v.length>0;}
-if(syn){lVoices();syn.onvoiceschanged=lVoices;}
-function spk(text,cb,rate=0.82){
-  if(!syn){cb&&cb();return;}syn.cancel();
-  setTimeout(()=>{const u=new SpeechSynthesisUtterance(text);if(!vL)lVoices();if(thV)u.voice=thV;u.lang=thV?thV.lang:'th-TH';u.rate=rate;u.pitch=1.2;u.volume=sVol;u.onend=()=>{cb&&cb();};u.onerror=()=>{cb&&cb();};syn.speak(u);},80);
-}
-const thD=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
-const thC={'ก':'กอ','ข':'ขอ','ค':'คอ','ง':'งอ','จ':'จอ','ฉ':'ฉอ','ช':'ชอ','ซ':'ซอ','ญ':'ญอ','ด':'ดอ','ต':'ตอ','ถ':'ถอ','ท':'ทอ','น':'นอ','บ':'บอ','ป':'ปอ','ผ':'ผอ','ฝ':'ฝอ','พ':'พอ','ฟ':'ฟอ','ภ':'ภอ','ม':'มอ','ย':'ยอ','ร':'รอ','ล':'ลอ','ว':'วอ','ส':'สอ','ห':'หอ','อ':'ออ','ฮ':'ฮอ','ฆ':'ฆอ','ณ':'ณอ','ธ':'ธอ','ฑ':'ฑอ','ฒ':'ฒอ','ศ':'ศอ','ษ':'ษอ','ฌ':'ฌอ','ฏ':'ฏอ','ฐ':'ฐอ'};
-function cSp(c){return thC[c]||c;}function nSp(n){const d=parseInt(n);return isNaN(d)?'':thD[d]||n;}
-const thT=['','สิบ','ยี่สิบ','สามสิบ','สี่สิบ','ห้าสิบ','หกสิบ','เจ็ดสิบ','แปดสิบ','เก้าสิบ'];
-function qTh(n){if(n<10)return thD[n];const t=Math.floor(n/10),o=n%10;return(t===1?'สิบ':thT[t])+(o===1?'เอ็ด':o===0?'':thD[o]);}
-function ann(q,done){
-  const cw=q.chars.filter(Boolean).map(cSp).join('   '),nw=q.nums.filter(Boolean).map(nSp).join('   ');
-  spk(`เชิญ คิวที่ ${qTh(q.num)}`,()=>setTimeout(()=>spk(`ทะเบียน ${cw}   ${nw}`,()=>setTimeout(()=>spk(`จังหวัด ${q.province}   รับรถได้ที่ ${q.zone}`,()=>{done&&done();},0.82),250),0.58),150),0.82);
-}
-function announce(q){playChime(()=>ann(q,()=>setTimeout(()=>playChime(()=>ann(q)),600)));}
+function announce(q){} // ไม่ใช้แล้ว — เสียงอยู่ที่ display.html
 
 // CLOCK
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false}),1000);

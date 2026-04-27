@@ -204,21 +204,6 @@ function renderPage(){
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${svcTags(q.services||[])}</div>
             ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
-            ${q.photoUrl?`<img src="${q.photoUrl}" onclick="window.open('${q.photoUrl}')" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer" alt="เอกสาร">`:''}
-          </div>
-        </div>
-    return `
-      <div class="card${cardCls}">
-        <div class="card-top">
-          <div class="card-num">${p2(q.num)}</div>
-          <div style="flex:1">
-            <div class="card-plate">${plateHTML}</div>
-            <div class="card-info">
-              ${stypeBadge}
-              <span class="tag tag-prov">${q.province}</span>
-              <span class="tag tag-zone">${q.zone}</span>
-            </div>
-            ${q.note?`<div class="card-note">📝 ${q.note}</div>`:''}
             ${q.photoUrl?`<img src="${q.photoUrl}" class="doc-img" alt="เอกสาร" onclick="window.open('${q.photoUrl}','_blank')">`:''}
           </div>
         </div>
